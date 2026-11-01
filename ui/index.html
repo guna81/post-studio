@@ -3,194 +3,805 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Postloom Studio</title>
+<title>Post Studio</title>
 <style>
-:root{--blue:#12448F;--ink:#0C2F66;--green:#13631F;--bg:#F4F7FB;--card:#fff;--line:#D5DEEC;--muted:#4A5B78;--err:#A12626}
+:root{
+  --bg:#F5F6F8;--panel:#FFFFFF;--panel2:#F0F2F6;--line:#E1E5EC;--ink:#14181F;--muted:#5B6575;
+  --accent:#12448F;--accent-ink:#FFFFFF;--accent-soft:#E6EEFA;--focus:#27C93F;
+  --ok:#136B26;--ok-bg:#DDF4E2;--warn:#7A5200;--warn-bg:#FFF0C7;--err:#A12626;--err-bg:#FCE4E4;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0E1116;--panel:#171B22;--panel2:#1E232C;--line:#2A303B;--ink:#E8ECF2;--muted:#9AA5B6;
+  --accent:#5B93E8;--accent-ink:#0B1220;--accent-soft:#1B2740;--focus:#3DDC5A;
+  --ok:#7EE095;--ok-bg:#12301B;--warn:#F3C969;--warn-bg:#35290A;--err:#FF9A9A;--err-bg:#3A1717;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
-header{background:var(--blue);padding:14px 24px;display:flex;align-items:center;gap:16px}
-header .chip{background:#fff;border-radius:10px;padding:6px 12px;display:flex}
-header img{height:34px}
-header .chip[hidden]{display:none}
-header h1{margin:0;color:#fff;font-size:18px;font-weight:600}
-main{max-width:1100px;margin:0 auto;padding:24px;display:grid;gap:24px}
-section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
-h2{margin:0 0 12px;font-size:18px}
-button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--blue);background:#fff;color:var(--blue);padding:10px 16px;min-height:44px}
-button.primary{background:var(--blue);color:#fff}
-button:disabled{opacity:.5;cursor:wait}
-button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #27C93F;outline-offset:2px}
-input,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff}
-textarea{min-height:90px;resize:vertical}
-select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);min-height:44px}
-label{display:block;font-weight:600;margin:12px 0 6px}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.topics{display:grid;gap:12px;margin-top:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.topic{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
-.topic h3{margin:0;font-size:16px}
-.topic p{margin:0;color:var(--muted);font-size:14px}
-.topic a{font-size:13px;color:var(--blue)}
-.topic button{margin-top:auto;align-self:flex-start}
-.slides{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:12px 0}
-.slides img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
-.status{margin:12px 0;color:var(--muted)}
-.error{color:var(--err);font-weight:600;white-space:pre-wrap}
-.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;background:#E3EBF7}
-.pill.posted{background:#D6F2DB;color:#0B4A15}.pill.approved{background:#FFF1CC;color:#6B4A00}
-table{width:100%;border-collapse:collapse;font-size:15px}
-th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
-details summary{cursor:pointer;font-weight:600;margin:8px 0}
-.hint{color:var(--muted);font-size:14px}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* shared */
+h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+.lead{color:var(--muted);margin:0 0 24px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.card + .card{margin-top:20px}
+.card h2{font-size:15px;margin:0 0 12px}
+label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
+input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+input:focus,textarea:focus,select:focus{background:var(--panel)}
+input[type=color]{padding:2px;height:44px;cursor:pointer}
+input[type=file]{padding:9px}
+textarea{min-height:84px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hint{color:var(--muted);font-size:13px}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 16px;min-height:44px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.btn:hover{background:var(--panel2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink) !important;border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--err);border-color:var(--err)}
+.btn.block{width:100%}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:14px}
+.btn:disabled{opacity:.55;cursor:progress}
+.link{background:none;border:0;color:var(--accent);cursor:pointer;padding:6px 0;font-weight:600;text-decoration:none}
+.status{margin-top:12px;color:var(--muted);font-size:14px;min-height:20px}
+.status.error{color:var(--err);background:var(--err-bg);border-radius:10px;padding:10px 12px;font-weight:600;white-space:pre-wrap}
+.status.ok{color:var(--ok)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-1px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:600;background:var(--accent-soft);color:var(--accent)}
+.pill.posted{background:var(--ok-bg);color:var(--ok)}
+.pill.approved{background:var(--warn-bg);color:var(--warn)}
+.chip{background:#fff;border:1px solid var(--line);border-radius:10px;padding:5px 8px;display:flex}
+.chip img{height:26px;display:block}
+.logo-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:800}
+
+/* auth */
+.auth-wrap{min-height:100%;display:grid;place-items:center;padding:24px}
+.auth{width:100%;max-width:400px}
+.auth .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.auth .tabs button{border:0;background:var(--panel2);padding:10px;border-radius:10px;font-weight:600;cursor:pointer;color:var(--muted)}
+.auth .tabs button[aria-selected=true]{background:var(--accent-soft);color:var(--accent)}
+
+/* top bar + projects */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px clamp(16px,4vw,48px);background:var(--panel);border-bottom:1px solid var(--line)}
+.topbar .who{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px}
+.wrap{padding:32px clamp(16px,4vw,48px) 64px;max-width:1180px;margin:0 auto}
+.pgrid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.pcard{all:unset;box-sizing:border-box;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;min-height:170px}
+.pcard:hover{border-color:var(--accent)}
+.pcard:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.pcard h3{margin:0;font-size:17px;letter-spacing:-.01em}
+.pcard .meta{display:flex;gap:6px;flex-wrap:wrap}
+.pcard .last{margin-top:auto;color:var(--muted);font-size:13px}
+.pcard.add{border-style:dashed;align-items:center;justify-content:center;color:var(--accent);font-weight:700;box-shadow:none}
+.picks{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.pick{border:1px solid var(--line);border-radius:10px;padding:6px;display:grid;gap:6px;justify-items:center;background:var(--card,transparent)}
+.pick i{width:56px;height:34px;border-radius:6px;border:1px solid var(--line);display:block}
+.pick code{font-size:11px}
+.pick .row{gap:4px}
+.pick img{max-width:96px;max-height:48px;background:#fff;border-radius:6px;padding:4px}
+.themebox{border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px}
+.swatches{display:flex;gap:4px}
+.swatches i{width:14px;height:14px;border-radius:50%;border:1px solid var(--line);display:block}
+
+/* project shell */
+.app{display:grid;grid-template-columns:288px 1fr;min-height:100%}
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;height:100vh;position:sticky;top:0}
+.brand{display:flex;align-items:center;gap:10px;padding:14px 18px 10px}
+.brand b{font-size:16px;letter-spacing:-.01em;word-break:break-word}
+.brand small{display:block;color:var(--muted);font-size:12px;margin-top:-2px}
+.side-top{padding:12px 14px 0}
+.side-actions{padding:8px 14px 12px}
+.hist-h{padding:8px 18px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+#hist{list-style:none;margin:0;padding:0 8px 8px;overflow:auto;flex:1}
+#hist li button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;padding:10px 10px;border-radius:10px;display:grid;gap:2px}
+#hist li button:hover{background:var(--panel2)}
+#hist li button[aria-current=true]{background:var(--accent-soft)}
+#hist li button:focus-visible{outline:3px solid var(--focus);outline-offset:-2px}
+.h-title{font-weight:600;font-size:14px;line-height:1.3}
+.h-meta{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+.empty{color:var(--muted);padding:12px 18px;font-size:14px}
+.side-foot{border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap}
+main{min-width:0;overflow-wrap:anywhere;padding:32px clamp(16px,4vw,48px) 64px;max-width:1180px;width:100%}
+
+/* topics */
+.topics{display:grid;gap:12px;margin-top:14px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.topic{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--panel2)}
+.topic h3{margin:0;font-size:15px;line-height:1.3}
+.topic p{margin:0;color:var(--muted);font-size:13px}
+.topic a{font-size:13px;color:var(--accent)}
+.topic .btn{margin-top:auto;align-self:flex-start;min-height:38px;padding:6px 12px}
+
+/* review */
+.rev-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.rev-grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:start}
+.viewer{position:sticky;top:24px}
+.stage{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:4/5}
+.stage img{width:100%;height:100%;object-fit:contain;display:block}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:20px}
+.nav:hover{background:rgba(0,0,0,.75)}
+.nav.prev{left:10px}.nav.next{right:10px}
+.nav[disabled]{display:none}
+.counter{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;border-radius:99px;padding:2px 10px}
+.thumbs{display:flex;gap:8px;overflow:auto;padding:10px 2px 4px}
+.thumbs button{all:unset;cursor:pointer;flex:0 0 56px;border-radius:8px;border:2px solid transparent;overflow:hidden;opacity:.65;line-height:0}
+.thumbs button[aria-current=true]{border-color:var(--accent);opacity:1}
+.thumbs button:focus-visible{outline:3px solid var(--focus)}
+.thumbs img{width:100%;aspect-ratio:4/5;object-fit:cover}
+.steps{display:flex;gap:6px;margin:0 0 16px;padding:0;list-style:none}
+.steps li{flex:1;text-align:center;font-size:12px;font-weight:600;padding:6px;border-radius:8px;background:var(--panel2);color:var(--muted)}
+.steps li.done{background:var(--ok-bg);color:var(--ok)}
+.steps li.now{background:var(--accent-soft);color:var(--accent)}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;min-height:260px}
+.fine{font-weight:400}
+
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  aside{position:static;height:auto;max-height:420px;border-right:0;border-bottom:1px solid var(--line)}
+  .rev-grid{grid-template-columns:minmax(0,1fr)}
+  .viewer{position:static;max-width:420px;min-width:0}
+  .grid2{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-<header><span class="chip" id="logo" hidden><img src="/assets/logo" alt=""></span><h1 id="brand">Post Studio</h1></header>
+
+<!-- AUTH -->
+<div id="v-auth" class="auth-wrap" hidden>
+  <div class="auth card">
+    <div class="row" style="margin-bottom:10px"><span class="logo-mark" aria-hidden="true">P</span><b style="font-size:18px">Post Studio</b></div>
+    <p class="hint" style="margin-top:0">Plan, draft and review social posts with Claude Code.</p>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-login" aria-selected="true">Log in</button>
+      <button type="button" role="tab" id="tab-signup" aria-selected="false">Sign up</button>
+    </div>
+    <form id="auth-form" novalidate>
+      <div id="auth-name-wrap" hidden><label for="a-name">Name</label><input id="a-name" autocomplete="name" maxlength="60"></div>
+      <label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email" required>
+      <label for="a-pw">Password <span class="hint fine" id="a-pw-hint" hidden>(8+ characters)</span></label><input id="a-pw" type="password" autocomplete="current-password" required>
+      <div class="row" style="margin-top:18px"><button class="btn primary block" id="a-submit" type="submit">Log in</button></div>
+      <div id="a-msg" class="status" role="alert"></div>
+    </form>
+  </div>
+</div>
+
+<!-- HOME: projects -->
+<div id="v-home" hidden>
+  <header class="topbar">
+    <div class="row"><span class="logo-mark" aria-hidden="true">P</span><b>Post Studio</b></div>
+    <div class="who"><a class="link user-email" href="#/account" title="Account settings"></a><button class="btn sm logout" type="button">Log out</button></div>
+  </header>
+  <div class="wrap">
+    <h1>Projects</h1>
+    <p class="lead">One project per account or brand. Each keeps its own settings, theme and post history.</p>
+    <div class="pgrid" id="pgrid"></div>
+    <div id="home-msg" class="status" role="status"></div>
+  </div>
+</div>
+
+<!-- NEW PROJECT -->
+<div id="v-new" hidden>
+  <header class="topbar">
+    <div class="row"><span class="logo-mark" aria-hidden="true">P</span><b>Post Studio</b></div>
+    <div class="who"><a class="link user-email" href="#/account" title="Account settings"></a><button class="btn sm logout" type="button">Log out</button></div>
+  </header>
+  <div class="wrap" style="max-width:760px">
+    <a class="link" href="#/">← All projects</a>
+    <h1 style="margin-top:8px">New project</h1>
+    <p class="lead">You can change all of this later in the project's settings.</p>
+    <form class="card" id="new-form" novalidate></form>
+  </div>
+</div>
+
+<!-- ACCOUNT -->
+<div id="v-account" hidden>
+  <header class="topbar">
+    <div class="row"><span class="logo-mark" aria-hidden="true">P</span><b>Post Studio</b></div>
+    <div class="who"><a class="link user-email" href="#/account" title="Account settings"></a><button class="btn sm logout" type="button">Log out</button></div>
+  </header>
+  <div class="wrap" style="max-width:560px">
+    <a class="link" href="#/">← All projects</a>
+    <h1 style="margin-top:8px">Account</h1>
+    <p class="lead">Your name and sign-in details. Stored only on this computer.</p>
+    <form class="card" id="acct-form" novalidate>
+      <label for="ac-name" style="margin-top:0">Name</label>
+      <input id="ac-name" maxlength="60" autocomplete="name">
+      <label for="ac-email">Email</label>
+      <input id="ac-email" type="email" maxlength="120" autocomplete="email">
+      <h2 style="margin-top:26px">Change password</h2>
+      <p class="hint" style="margin-top:0">Leave blank to keep your current password.</p>
+      <label for="ac-new">New password</label>
+      <input id="ac-new" type="password" maxlength="200" autocomplete="new-password">
+      <label for="ac-new2">Confirm new password</label>
+      <input id="ac-new2" type="password" maxlength="200" autocomplete="new-password">
+      <div id="ac-cur-wrap" hidden>
+        <label for="ac-cur">Current password <span class="hint fine">(needed to change email or password)</span></label>
+        <input id="ac-cur" type="password" maxlength="200" autocomplete="current-password">
+      </div>
+      <div class="row" style="margin-top:18px"><button class="btn primary" id="ac-save" type="submit">Save</button></div>
+      <div id="ac-msg" class="status" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+
+<!-- PROJECT -->
+<div class="app" id="v-proj" hidden>
+<aside>
+  <div class="side-top"><a class="link" href="#/">← All projects</a> · <a class="link user-email" href="#/account" title="Account settings"></a></div>
+  <div class="brand">
+    <span class="chip" id="logo" hidden><img id="logo-img" alt=""></span>
+    <div><b id="brand">Project</b><small id="brand-sub"></small></div>
+  </div>
+  <div class="side-actions"><button class="btn primary block" id="btn-new" type="button">+ New post</button></div>
+  <div class="hist-h" id="h-hist">History</div>
+  <ul id="hist" aria-labelledby="h-hist"></ul>
+  <div class="side-foot">
+    <a class="btn sm" id="nav-settings" href="#">Settings</a>
+    <button class="btn sm" id="btn-exp-zip" type="button" title="Download every post as images, plus captions and settings">Export ZIP</button>
+    <button class="btn sm" id="btn-exp-json" type="button" title="Download everything as one JSON file">JSON</button>
+  </div>
+</aside>
+
 <main>
-<section aria-labelledby="h-new">
-<h2 id="h-new">1. Pick a topic</h2>
-<div class="row">
-<button class="primary" id="btn-topics">Suggest today's topics</button>
-<span class="hint">Searches recent AI/tech news and skips topics already in your log. Takes about a minute.</span>
-</div>
-<div id="topics" class="topics"></div>
-<label for="topic">Or enter your own topic or plan</label>
-<input id="topic" maxlength="500" placeholder="e.g. How RAG works, explained simply">
-<label for="notes">Notes (optional): points to cover, audience, tone</label>
-<textarea id="notes" maxlength="1500"></textarea>
-<div class="row" style="margin-top:12px"><label for="fmt" class="hint" style="margin:0">Format</label><select id="fmt"></select><label for="chn" class="hint" style="margin:0">Channel</label><select id="chn"></select><button class="primary" id="btn-gen">Generate post</button></div>
-<div id="job" class="status" role="status" aria-live="polite"></div>
-</section>
+<!-- CREATE -->
+<div id="create">
+  <h1>Create a post</h1>
+  <p class="lead" id="create-lead">Pick a topic, generate the post, then review it before anything goes out.</p>
 
-<section id="review" hidden aria-labelledby="h-rev">
-<h2 id="h-rev">2. Review</h2>
-<div id="r-title" style="font-weight:600"></div>
-<div class="slides" id="r-slides"></div>
-<label for="r-caption">Caption</label>
-<textarea id="r-caption" style="min-height:150px"></textarea>
-<details><summary>Edit content (JSON)</summary>
-<textarea id="r-json" style="min-height:280px;font-family:ui-monospace,monospace;font-size:13px" spellcheck="false"></textarea>
-<p class="hint">Edit the content, then press Save and re-render.</p></details>
-<div class="row" style="margin-top:12px">
-<button class="primary" id="btn-save">Save and re-render</button>
-<button id="btn-approve">Approve</button>
-<button id="btn-folder">Open folder</button>
-<button id="btn-copy">Copy caption</button>
-<a id="open-ch" href="#" target="_blank" rel="noopener"><button type="button" id="open-ch-btn">Open channel</button></a>
-</div>
-<p class="hint" id="r-hint"></p>
-<div class="row">
-<input id="r-url" placeholder="Published post URL (optional)" style="max-width:420px" aria-label="Published post URL">
-<button id="btn-posted">Mark as posted</button>
-</div>
-<div id="r-msg" class="status" role="status" aria-live="polite"></div>
-</section>
+  <section class="card" aria-labelledby="h-topics">
+    <h2 id="h-topics">Need ideas?</h2>
+    <div class="row">
+      <button class="btn" id="btn-topics" type="button">Suggest today's topics</button>
+      <span class="hint">Searches recent news for your audience and skips anything already in your history. About a minute.</span>
+    </div>
+    <div id="topics" class="topics"></div>
+  </section>
 
-<section aria-labelledby="h-hist">
-<h2 id="h-hist">History</h2>
-<table><thead><tr><th>Date</th><th>Title</th><th>Status</th><th></th></tr></thead><tbody id="hist"></tbody></table>
-</section>
+  <section class="card" aria-labelledby="h-new">
+    <h2 id="h-new">Your post</h2>
+    <label for="topic" style="margin-top:0">Topic</label>
+    <input id="topic" maxlength="500" placeholder="e.g. How RAG works, explained simply">
+    <label for="notes">Notes <span class="hint fine">(optional: points to cover, audience, tone)</span></label>
+    <textarea id="notes" maxlength="1500"></textarea>
+    <p class="hint" id="create-fmt"></p>
+    <div class="row" style="margin-top:18px"><button class="btn primary" id="btn-gen" type="button">Generate post</button></div>
+    <div id="job" class="status" role="status" aria-live="polite"></div>
+  </section>
+</div>
+
+<!-- REVIEW -->
+<div id="review" hidden>
+  <div class="rev-head">
+    <div>
+      <h1 id="r-title">Review</h1>
+      <div class="row"><span class="pill" id="r-pill">drafted</span><span class="hint" id="r-dir"></span></div>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="btn-post-zip" type="button">Export ZIP</button>
+      <button class="btn sm" id="btn-post-json" type="button">JSON</button>
+    </div>
+  </div>
+  <ol class="steps" aria-label="Progress"><li id="s-draft">1 · Drafted</li><li id="s-app">2 · Approved</li><li id="s-post">3 · Posted</li></ol>
+
+  <div class="rev-grid">
+    <div class="viewer">
+      <div class="stage" id="stage" tabindex="0" aria-label="Slide viewer. Use arrow keys to change slide.">
+        <img id="r-main" alt="">
+        <button class="nav prev" id="prev" type="button" aria-label="Previous slide">‹</button>
+        <button class="nav next" id="next" type="button" aria-label="Next slide">›</button>
+        <span class="counter" id="counter"></span>
+      </div>
+      <div class="thumbs" id="r-slides"></div>
+    </div>
+
+    <div>
+      <section class="card">
+        <h2>Edit with a prompt</h2>
+        <textarea id="r-prompt" maxlength="1000" style="min-height:84px" aria-label="Describe the change" placeholder="e.g. make the cover punchier, cut slide 4, end with a follow us call to action"></textarea>
+        <div class="actions">
+          <button class="btn primary" id="btn-revise" type="button">Apply changes</button>
+          <button class="btn" id="btn-undo" type="button" hidden>Undo last change</button>
+        </div>
+        <p class="hint" style="margin-bottom:0">Claude edits this post and it is re-rendered. Takes about a minute. Unsaved edits below are included.</p>
+        <div id="rv-job" class="status" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <h2>Caption</h2>
+        <textarea id="r-caption" style="min-height:170px" aria-label="Caption"></textarea>
+        <div class="actions">
+          <button class="btn" id="btn-copy" type="button">Copy caption</button>
+          <a class="btn" id="open-ch" href="#" target="_blank" rel="noopener"><span id="open-ch-btn">Open platform</span> ↗</a>
+          <button class="btn" id="btn-folder" type="button">Open folder</button>
+        </div>
+        <p class="hint" id="r-hint" style="margin-bottom:0"></p>
+        <details><summary>Edit slide content (JSON)</summary>
+          <textarea id="r-json" class="mono" spellcheck="false" aria-label="Slide content JSON"></textarea>
+        </details>
+        <div class="row" style="margin-top:14px"><button class="btn" id="btn-save" type="button">Save and re-render</button></div>
+      </section>
+
+      <section class="card">
+        <h2>Publish</h2>
+        <div class="actions" style="margin-top:0">
+          <button class="btn primary" id="btn-approve" type="button">Approve</button>
+        </div>
+        <label for="r-url">Published post URL <span class="hint fine">(optional)</span></label>
+        <div class="row">
+          <input id="r-url" placeholder="https://…" style="flex:1;min-width:200px">
+          <button class="btn" id="btn-posted" type="button">Mark as posted</button>
+        </div>
+        <div id="r-msg" class="status" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" hidden>
+  <h1>Project settings</h1>
+  <p class="lead">These guide topic research and writing, and set the look of your posts.</p>
+  <form class="card" id="set-form" novalidate></form>
+  <section class="card">
+    <h2>Danger zone</h2>
+    <p class="hint" style="margin-top:0">Deleting a project removes its settings, drafts and history from this computer. Export first if you want a copy.</p>
+    <button class="btn danger" id="btn-del" type="button">Delete this project</button>
+    <div id="del-msg" class="status" role="status"></div>
+  </section>
+</div>
 </main>
+</div>
+
 <script>
 const $ = (id) => document.getElementById(id);
-let current = null, timer = null;
+const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach((k) => e.append(k)); return e; };
 
-async function call(name, body) {
-  const r = await fetch('/api/' + name, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
-  const j = await r.json();
+let me = null, meta = { formats: [], channels: [] };
+let project = null, logCache = [], current = null, slides = [], idx = 0, timer = null;
+
+// ---------- http ----------
+async function req(method, path, body) {
+  const r = await fetch(path, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && me) { me = null; route(); }
   if (!r.ok) throw new Error(j.error || 'Request failed');
   return j;
 }
-function el(tag, props = {}, ...kids) {
-  const e = Object.assign(document.createElement(tag), props);
-  kids.forEach((k) => e.append(k));
-  return e;
+const get = (p) => req('GET', p);
+const post = (p, b) => req('POST', p, b || {});
+const PA = (suffix = '') => `/api/projects/${project.id}${suffix}`;
+
+async function download(path, fallbackName, msgEl) {
+  try {
+    const r = await fetch(path);
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Export failed');
+    const name = /filename="([^"]+)"/.exec(r.headers.get('Content-Disposition') || '')?.[1] || fallbackName;
+    const a = el('a', { href: URL.createObjectURL(await r.blob()), download: name });
+    document.body.append(a); a.click(); a.remove();
+    if (msgEl) ok(msgEl, 'Downloaded ' + name);
+  } catch (e) { if (msgEl) fail(e, msgEl); else alert(e.message); }
 }
-function busy(on, msg) {
-  ['btn-topics', 'btn-gen', 'btn-save'].forEach((id) => ($(id).disabled = on));
+
+// ---------- status helpers ----------
+function fail(e, target) { target.className = 'status error'; target.textContent = e.message; }
+function ok(target, msg) { target.className = 'status ok'; target.textContent = msg; }
+let busyTarget = 'job';
+function busy(on, msg, target = 'job') {
+  busyTarget = target;
+  ['btn-topics', 'btn-gen', 'btn-save', 'btn-revise', 'btn-undo'].forEach((id) => ($(id).disabled = on));
   clearInterval(timer);
-  const j = $('job');
-  j.className = 'status';
-  if (on) {
-    const t0 = Date.now();
-    const tick = () => (j.textContent = `${msg} ${Math.round((Date.now() - t0) / 1000)}s`);
-    tick(); timer = setInterval(tick, 1000);
-  }
+  const j = $(busyTarget); j.className = 'status';
+  if (on) { const t0 = Date.now(); const tick = () => j.replaceChildren(el('span', { className: 'spin' }), `${msg} ${Math.round((Date.now() - t0) / 1000)}s`); tick(); timer = setInterval(tick, 1000); }
 }
-function fail(e, target = $('job')) { target.className = 'status error'; target.textContent = e.message; }
+
+// ---------- routing ----------
+const VIEWS = ['v-auth', 'v-home', 'v-new', 'v-account', 'v-proj'];
+function only(id) { VIEWS.forEach((v) => ($(v).hidden = v !== id)); window.scrollTo({ top: 0 }); }
+
+async function route() {
+  if (!me) return showAuth();
+  document.querySelectorAll('.user-email').forEach((n) => (n.textContent = me.name || me.email));
+  const h = location.hash.replace(/^#/, '') || '/';
+  let m;
+  try {
+    if (h === '/') return await showHome();
+    if (h === '/new') return showNew();
+    if (h === '/account') return showAccount();
+    if ((m = h.match(/^\/p\/([a-f0-9]{16})(?:\/(settings)|\/post\/([\w-]+))?$/))) return await showProject(m[1], m[2], m[3]);
+  } catch (e) { location.hash = '#/'; return; }
+  location.hash = '#/';
+}
+window.addEventListener('hashchange', route);
+
+// ---------- auth ----------
+let mode = 'login';
+function setMode(m) {
+  mode = m;
+  $('tab-login').setAttribute('aria-selected', m === 'login'); $('tab-signup').setAttribute('aria-selected', m === 'signup');
+  $('auth-name-wrap').hidden = m !== 'signup'; $('a-pw-hint').hidden = m !== 'signup';
+  $('a-pw').autocomplete = m === 'signup' ? 'new-password' : 'current-password';
+  $('a-submit').textContent = m === 'signup' ? 'Create account' : 'Log in';
+  $('a-msg').className = 'status'; $('a-msg').textContent = '';
+}
+$('tab-login').onclick = () => setMode('login');
+$('tab-signup').onclick = () => setMode('signup');
+function showAuth() { only('v-auth'); setMode(mode); }
+$('auth-form').onsubmit = async (e) => {
+  e.preventDefault();
+  $('a-submit').disabled = true;
+  try {
+    const r = await post('/api/' + mode, { email: $('a-email').value, password: $('a-pw').value, name: $('a-name').value });
+    me = r.user; $('a-pw').value = '';
+    route();
+  } catch (err) { fail(err, $('a-msg')); }
+  $('a-submit').disabled = false;
+};
+document.querySelectorAll('.logout').forEach((b) => (b.onclick = async () => { await post('/api/logout').catch(() => {}); me = null; project = null; location.hash = '#/'; route(); }));
+
+// ---------- account ----------
+function showAccount() {
+  only('v-account');
+  const f = $('acct-form');
+  $('ac-name').value = me.name || ''; $('ac-email').value = me.email;
+  ['ac-new', 'ac-new2', 'ac-cur'].forEach((id) => ($(id).value = ''));
+  $('ac-msg').className = 'status'; $('ac-msg').textContent = '';
+  const sync = () => ($('ac-cur-wrap').hidden = !($('ac-email').value.trim().toLowerCase() !== me.email || $('ac-new').value));
+  sync();
+  ['ac-email', 'ac-new'].forEach((id) => ($(id).oninput = sync));
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    if ($('ac-new').value !== $('ac-new2').value) return fail(new Error('The new passwords do not match.'), $('ac-msg'));
+    $('ac-save').disabled = true;
+    try {
+      const r = await post('/api/profile', { name: $('ac-name').value, email: $('ac-email').value, currentPassword: $('ac-cur').value, newPassword: $('ac-new').value || undefined });
+      me = r.user; document.querySelectorAll('.user-email').forEach((n) => (n.textContent = me.name || me.email));
+      ['ac-new', 'ac-new2', 'ac-cur'].forEach((id) => ($(id).value = '')); sync();
+      ok($('ac-msg'), 'Saved.');
+    } catch (err) { fail(err, $('ac-msg')); }
+    $('ac-save').disabled = false;
+  };
+}
+
+// ---------- home ----------
+const platformLabel = (id) => meta.channels.find((c) => c.id === id)?.label || id;
+async function showHome() {
+  project = null;
+  only('v-home');
+  $('home-msg').textContent = '';
+  const { projects } = await get('/api/projects');
+  const go = (hash) => () => (location.hash = hash);
+  const add = el('button', { className: 'pcard add', type: 'button', onclick: go('#/new') }, '+ New project');
+  $('pgrid').replaceChildren(...projects.map((p) => el('button', { className: 'pcard', type: 'button', onclick: go('#/p/' + p.id) },
+    el('h3', { textContent: p.name }),
+    el('div', { className: 'meta' }, el('span', { className: 'pill', textContent: platformLabel(p.channel) }), el('span', { className: 'pill', textContent: p.format })),
+    el('div', { className: 'hint', textContent: p.goal || p.about || 'No goal set yet' }),
+    el('div', { className: 'last', textContent: p.posts ? `${p.posts} post${p.posts === 1 ? '' : 's'} · ${p.posted} posted${p.lastDate ? ' · last ' + p.lastDate : ''}` : 'No posts yet' }))), add);
+}
+
+// ---------- project form (new + settings) ----------
+function colorField(label, value, onDirty) {
+  const input = el('input', { type: 'color', value, ariaLabel: label });
+  input.addEventListener('input', onDirty);
+  return { input, node: el('div', {}, el('label', { textContent: label }), input) };
+}
+
+// Pick the most distinctive colours from an image, in the browser (nothing is uploaded).
+async function colorsFromImage(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not read that image')); i.src = url; });
+    const w = 96, h = Math.max(1, Math.round(w * (img.naturalHeight || w) / (img.naturalWidth || w)));
+    const cv = el('canvas', { width: w, height: h }); const cx = cv.getContext('2d', { willReadFrequently: true });
+    cx.drawImage(img, 0, 0, w, h);
+    const d = cx.getImageData(0, 0, w, h).data, buckets = new Map();
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 200) continue;
+      const r = d[i], g = d[i + 1], b = d[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+      if (mx < 30 || mn > 235 || (mx - mn) / (mx || 1) < 0.25) continue; // skip black, white, grey
+      const k = (r >> 4) << 8 | (g >> 4) << 4 | (b >> 4), e = buckets.get(k) || { n: 0, r: 0, g: 0, b: 0 };
+      e.n++; e.r += r; e.g += g; e.b += b; buckets.set(k, e);
+    }
+    const hx = (e) => '#' + [e.r, e.g, e.b].map((v) => Math.round(v / e.n).toString(16).padStart(2, '0')).join('');
+    const out = [];
+    for (const e of [...buckets.values()].sort((a, b) => b.n - a.n)) {
+      const c = hx(e), near = out.some((o) => [1, 3, 5].reduce((t, j) => t + Math.abs(parseInt(c.slice(j, j + 2), 16) - parseInt(o.slice(j, j + 2), 16)), 0) < 70);
+      if (!near) out.push(c);
+      if (out.length === 8) break;
+    }
+    return out;
+  } finally { URL.revokeObjectURL(url); }
+}
+function buildForm(form, p, isNew) {
+  const f = {};
+  const text = (key, label, hint, props = {}) => {
+    f[key] = props.tag === 'textarea' ? el('textarea', { maxLength: props.max || 300, value: p?.[key] || '' }) : el('input', { maxLength: props.max || 120, value: p?.[key] || '', placeholder: props.ph || '' });
+    f[key].id = 'f-' + key;
+    return el('div', {}, el('label', { htmlFor: f[key].id }, label, hint ? el('span', { className: 'hint fine', textContent: ' ' + hint }) : ''), f[key]);
+  };
+  let dirtyColors = isNew;
+  const c1 = colorField('Primary colour', p?.colors?.primary || '#1F3A8A', () => (dirtyColors = true));
+  const c2 = colorField('Accent colour', p?.colors?.accent || '#FACC15', () => (dirtyColors = true));
+  f.channel = el('select', { id: 'f-channel' }); f.format = el('select', { id: 'f-format' });
+  f.channel.replaceChildren(...meta.channels.map((c) => el('option', { value: c.id, textContent: c.label })));
+  const fillFormats = () => {
+    const allowed = meta.channels.find((c) => c.id === f.channel.value)?.formats || [];
+    f.format.replaceChildren(...meta.formats.filter((x) => allowed.includes(x.id)).map((x) => el('option', { value: x.id, textContent: x.label })));
+  };
+  f.channel.onchange = fillFormats;
+  f.channel.value = p?.channel || meta.channels[0]?.id; fillFormats(); if (p?.format) f.format.value = p.format;
+  f.logo = el('input', { type: 'file', id: 'f-logo', accept: '.svg,.png,image/svg+xml,image/png' });
+  let pickedLogo = null;
+  const setColor = (c, hexv) => { c.input.value = hexv; dirtyColors = true; };
+  const picks = el('div', { className: 'picks', ariaLive: 'polite' });
+  const tmsg = el('div', { className: 'status', role: 'status', ariaLive: 'polite' });
+  const showColors = (list) => picks.append(...list.map((hexv) => el('div', { className: 'pick' },
+    el('i', { style: 'background:' + hexv }), el('code', { textContent: hexv }),
+    el('div', { className: 'row' },
+      el('button', { className: 'btn sm', type: 'button', textContent: 'Primary', ariaLabel: `Use ${hexv} as primary colour`, onclick: () => setColor(c1, hexv) }),
+      el('button', { className: 'btn sm', type: 'button', textContent: 'Accent', ariaLabel: `Use ${hexv} as accent colour`, onclick: () => setColor(c2, hexv) })))));
+  f.site = el('input', { id: 'f-site', maxLength: 300, placeholder: 'example.com', autocomplete: 'off' });
+  f.siteBtn = el('button', { className: 'btn', type: 'button', textContent: 'Fetch from website', style: 'white-space:nowrap' });
+  f.siteBtn.onclick = async () => {
+    if (!f.site.value.trim()) { fail(new Error('Enter a website address first'), tmsg); return; }
+    f.siteBtn.disabled = true; tmsg.className = 'status'; tmsg.textContent = 'Reading the website…'; picks.replaceChildren();
+    try {
+      const r = await post('/api/theme/site', { url: f.site.value });
+      showColors(r.colors.map((c) => c.hex));
+      picks.append(...r.logos.map((l) => el('div', { className: 'pick' }, el('img', { src: `data:image/${l.filename.endsWith('svg') ? 'svg+xml' : 'png'};base64,${l.data}`, alt: 'Logo found on the site' }),
+        el('button', { className: 'btn sm', type: 'button', textContent: 'Use as logo', onclick: (ev) => { pickedLogo = { filename: l.filename, data: l.data }; f.logo.value = ''; ev.target.textContent = 'Logo chosen'; } }))));
+      if (!r.colors.length && !r.logos.length) fail(new Error('Found no brand colours or logo on that page. Try an image instead.'), tmsg);
+      else ok(tmsg, `Found ${r.colors.length} colours and ${r.logos.length} logo${r.logos.length === 1 ? '' : 's'}. Choose which to use, then save.`);
+    } catch (err) { fail(err, tmsg); }
+    f.siteBtn.disabled = false;
+  };
+  f.img = el('input', { type: 'file', id: 'f-img', accept: 'image/png,image/jpeg,image/webp,image/svg+xml' });
+  f.img.onchange = async () => {
+    const file = f.img.files[0]; if (!file) return;
+    picks.replaceChildren(); tmsg.className = 'status'; tmsg.textContent = 'Reading the image…';
+    try { const list = await colorsFromImage(file); if (!list.length) throw new Error('No distinctive colours found in that image'); showColors(list); ok(tmsg, `Found ${list.length} colours. Choose which to use.`); }
+    catch (err) { fail(err, tmsg); }
+  };
+  f.msg = el('div', { className: 'status', role: 'status', ariaLive: 'polite' });
+  f.submit = el('button', { className: 'btn primary', type: 'submit', textContent: isNew ? 'Create project' : 'Save settings' });
+
+  form.replaceChildren(
+    text('name', 'Project name', '', { max: 80, ph: 'e.g. Acme AI' }),
+    text('about', 'What is it about?', '(one line)', { ph: 'a small team that explains AI to developers' }),
+    text('goal', 'Goal', '(what should the posts achieve?)', { max: 400, ph: 'Grow followers among students; teach one AI concept per post' }),
+    text('audience', 'Audience', '', { max: 200, ph: 'developers, students and founders' }),
+    el('div', { className: 'grid2' }, text('tone', 'Tone of voice', '', { ph: 'plain, direct, confident' }), text('cta', 'Closing call to action', '', { ph: 'Save this · Follow us' })),
+    el('div', { className: 'grid2' }, el('div', {}, el('label', { htmlFor: 'f-channel', textContent: 'Platform' }), f.channel), el('div', {}, el('label', { htmlFor: 'f-format', textContent: 'Format' }), f.format)),
+    text('hashtags', 'Hashtags', '(comma separated)', { max: 400, ph: '#AI, #LearnAI' }),
+    el('div', { className: 'themebox' },
+      el('b', { textContent: 'Theme' }),
+      el('p', { className: 'hint', textContent: 'Set the two colours by hand, or pull them from your website or an image.' }),
+      el('div', { className: 'grid2' }, c1.node, c2.node),
+      el('label', { htmlFor: 'f-site', textContent: 'Website' }),
+      el('div', { className: 'row', style: 'flex-wrap:nowrap;align-items:stretch' }, f.site, f.siteBtn),
+      el('label', { htmlFor: 'f-img' }, 'Or pick colours from an image ', el('span', { className: 'hint fine', textContent: '(stays in your browser)' })), f.img,
+      tmsg, picks),
+    p?.customTheme ? el('p', { className: 'hint', textContent: 'This project uses a hand-made theme. Changing the colours replaces it with one generated from your two colours.' }) : '',
+    el('div', {}, el('label', { htmlFor: 'f-logo' }, 'Logo ', el('span', { className: 'hint fine', textContent: '(SVG or PNG, under 600 KB' + (p?.hasLogo ? '; leave empty to keep the current one' : '') + ')' })), f.logo),
+    el('div', { className: 'row', style: 'margin-top:20px' }, f.submit),
+    f.msg);
+  if (p) { f.hashtags.value = (p.hashtags || []).join(', '); }
+
+  f.read = async () => {
+    const settings = { name: f.name.value, about: f.about.value, goal: f.goal.value, audience: f.audience.value, tone: f.tone.value, cta: f.cta.value, hashtags: f.hashtags.value, channel: f.channel.value, format: f.format.value };
+    if (dirtyColors) settings.colors = { primary: c1.input.value, accent: c2.input.value };
+    let logo;
+    const file = f.logo.files[0];
+    if (!file && pickedLogo) logo = pickedLogo;
+    if (file) {
+      if (file.size > 600 * 1024) throw new Error('Logo must be under 600 KB');
+      const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = () => rej(new Error('Could not read the logo file')); r.readAsDataURL(file); });
+      logo = { filename: file.name, data };
+    }
+    return { settings, logo };
+  };
+  return f;
+}
+
+function showNew() {
+  only('v-new'); $('set-form').replaceChildren();
+  const f = buildForm($('new-form'), null, true);
+  $('new-form').onsubmit = async (e) => {
+    e.preventDefault(); f.submit.disabled = true;
+    try { const { project: p } = await post('/api/projects', await f.read()); location.hash = '#/p/' + p.id; }
+    catch (err) { fail(err, f.msg); }
+    f.submit.disabled = false;
+  };
+  f.name.focus();
+}
+
+// ---------- project ----------
+async function loadLog() { logCache = await get(PA('/log')); renderHist(); }
+function applyProject(p) {
+  project = p;
+  $('brand').textContent = p.name; $('brand-sub').textContent = platformLabel(p.channel);
+  document.title = p.name + ' · Post Studio';
+  $('logo').hidden = !p.hasLogo; if (p.hasLogo) $('logo-img').src = `/projects/${p.id}/logo?v=${Date.now()}`;
+  $('nav-settings').href = `#/p/${p.id}/settings`;
+  const fl = meta.formats.find((f) => f.id === p.format)?.label || p.format;
+  $('create-fmt').textContent = `Creates a ${fl.toLowerCase()} for ${platformLabel(p.channel)}. Change this in Settings.`;
+  $('create-lead').textContent = p.goal ? `Goal: ${p.goal}` : 'Pick a topic, generate the post, then review it before anything goes out.';
+}
+function section(name) { ['create', 'review', 'settings'].forEach((s) => ($(s).hidden = s !== name)); }
+
+async function showProject(id, sub, dir) {
+  only('v-proj');
+  if (!project || project.id !== id) {
+    project = { id }; // so PA() works while loading
+    try { applyProject((await get('/api/projects/' + id)).project); } catch (e) { project = null; throw e; }
+    logCache = []; current = null;
+    $('topics').replaceChildren(); $('job').textContent = '';
+    await loadLog();
+  } else { applyProject((await get('/api/projects/' + id)).project); await loadLog(); }
+  if (sub === 'settings') return showSettings();
+  if (dir) return openDraft(dir);
+  showCreate();
+}
+
+function showCreate() { current = null; section('create'); renderHist(); window.scrollTo({ top: 0 }); }
+$('btn-new').onclick = () => { const h = `#/p/${project.id}`; if (location.hash === h) showCreate(); else location.hash = h; };
+
+function showSettings() {
+  current = null; section('settings'); renderHist(); $('new-form').replaceChildren();
+  const f = buildForm($('set-form'), project, false);
+  $('set-form').onsubmit = async (e) => {
+    e.preventDefault(); f.submit.disabled = true;
+    try { const { project: p } = await post(PA('/update'), await f.read()); applyProject(p); ok(f.msg, 'Saved.'); }
+    catch (err) { fail(err, f.msg); }
+    f.submit.disabled = false;
+  };
+  let armed = null;
+  $('btn-del').onclick = async () => {
+    if (!armed) { $('btn-del').textContent = 'Click again to permanently delete'; armed = setTimeout(() => { armed = null; $('btn-del').textContent = 'Delete this project'; }, 5000); return; }
+    clearTimeout(armed); armed = null;
+    try { await post(PA('/delete')); project = null; location.hash = '#/'; } catch (err) { fail(err, $('del-msg')); }
+  };
+}
+
+$('btn-exp-zip').onclick = () => download(PA('/export?format=zip'), 'project.zip', $('job'));
+$('btn-exp-json').onclick = () => download(PA('/export?format=json'), 'project.json', $('job'));
+$('btn-post-zip').onclick = () => download(PA(`/export?format=zip&dir=${encodeURIComponent(current)}`), 'post.zip', $('r-msg'));
+$('btn-post-json').onclick = () => download(PA(`/export?format=json&dir=${encodeURIComponent(current)}`), 'post.json', $('r-msg'));
 
 $('btn-topics').onclick = async () => {
   $('topics').replaceChildren();
   busy(true, 'Searching news…');
   try {
-    const { topics } = await call('topics');
+    const { topics } = await post(PA('/topics'));
     busy(false); $('job').textContent = '';
     topics.forEach((t) => $('topics').append(el('div', { className: 'topic' },
       el('h3', { textContent: t.title }), el('p', { textContent: t.angle }), el('p', { textContent: 'Why now: ' + t.why_now }),
-      t.source_url && /^https?:\/\//.test(t.source_url) ? el('a', { href: t.source_url, target: '_blank', rel: 'noopener', textContent: 'Source' }) : '',
-      el('button', { textContent: 'Use this topic', onclick: () => { $('topic').value = t.title; $('notes').value = t.angle; $('topic').scrollIntoView({ behavior: 'smooth' }); } }))));
-  } catch (e) { busy(false); fail(e); }
+      t.source_url && /^https?:\/\//.test(t.source_url) ? el('a', { href: t.source_url, target: '_blank', rel: 'noopener', textContent: 'Source ↗' }) : '',
+      el('button', { className: 'btn', type: 'button', textContent: 'Use this topic', onclick: () => { $('topic').value = t.title; $('notes').value = t.angle; $('topic').focus(); $('topic').scrollIntoView({ behavior: 'smooth', block: 'center' }); } }))));
+  } catch (e) { busy(false); fail(e, $('job')); }
 };
 
 $('btn-gen').onclick = async () => {
   const topic = $('topic').value.trim();
-  if (!topic) { fail(new Error('Enter a topic first.')); return; }
+  if (!topic) { fail(new Error('Enter a topic first.'), $('job')); $('topic').focus(); return; }
   busy(true, 'Writing and designing the post…');
   try {
-    const { dir } = await call('generate', { topic, notes: $('notes').value.trim(), format: $('fmt').value, channel: $('chn').value });
-    busy(false); $('job').textContent = 'Done. Review below.';
-    await openDraft(dir); loadLog();
-  } catch (e) { busy(false); fail(e); }
+    const { dir } = await post(PA('/generate'), { topic, notes: $('notes').value.trim() });
+    busy(false); $('job').textContent = '';
+    $('topic').value = ''; $('notes').value = '';
+    await loadLog(); location.hash = `#/p/${project.id}/post/${dir}`;
+  } catch (e) { busy(false); fail(e, $('job')); }
 };
 
+// ---------- review ----------
+function show(i) {
+  if (!slides.length) return;
+  idx = Math.max(0, Math.min(slides.length - 1, i));
+  $('r-main').src = slides[idx]; $('r-main').alt = `Slide ${idx + 1} of ${slides.length}`;
+  $('counter').textContent = `${idx + 1} / ${slides.length}`;
+  $('prev').disabled = idx === 0; $('next').disabled = idx === slides.length - 1;
+  [...$('r-slides').children].forEach((b, n) => b.setAttribute('aria-current', n === idx));
+}
+$('prev').onclick = () => show(idx - 1);
+$('next').onclick = () => show(idx + 1);
+$('stage').addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') show(idx - 1); if (e.key === 'ArrowRight') show(idx + 1); });
+
+function setStatusUI(status) {
+  const p = $('r-pill'); p.textContent = status; p.className = 'pill ' + status;
+  const n = ['drafted', 'approved', 'posted'].indexOf(status);
+  ['s-draft', 's-app', 's-post'].forEach((id, i) => { $(id).className = i < n ? 'done' : i === n ? (status === 'posted' ? 'done' : 'now') : ''; });
+  $('btn-approve').disabled = status !== 'drafted';
+}
+
 async function openDraft(dir) {
-  const d = await call('draft', { dir });
-  current = dir;
-  $('review').hidden = false;
-  $('r-title').textContent = `${d.title} (${dir})`;
+  const d = await post(PA('/draft'), { dir });
+  current = dir; section('review');
+  $('r-title').textContent = d.title; $('r-dir').textContent = dir;
   const v = Date.now();
-  $('r-slides').replaceChildren(...d.previews.map((f, i) => el('img', { src: `/drafts/${dir}/${f}?v=${v}`, alt: `Preview ${i + 1}` })));
+  slides = d.previews.map((f) => `/projects/${project.id}/drafts/${dir}/${f}?v=${v}`);
+  $('r-slides').replaceChildren(...slides.map((src, i) => el('button', { type: 'button', ariaLabel: `Go to slide ${i + 1}`, onclick: () => show(i) }, el('img', { src, alt: '' }))));
+  show(0);
   $('r-hint').textContent = d.postingHint || '';
-  $('open-ch').href = d.homeUrl || '#'; $('open-ch-btn').textContent = 'Open ' + ($('chn').querySelector(`[value="${d.channel}"]`)?.textContent || 'channel');
+  $('open-ch').href = /^https:\/\//.test(d.homeUrl || '') ? d.homeUrl : '#';
+  $('open-ch-btn').textContent = 'Open ' + (d.channelLabel || 'platform');
   $('r-caption').value = d.caption;
   $('r-json').value = JSON.stringify(d.content, null, 2);
-  $('r-msg').textContent = '';
-  $('review').scrollIntoView({ behavior: 'smooth' });
+  const entry = logCache.find((p) => p.local_dir && p.local_dir.replace('drafts/', '') === dir);
+  $('r-url').value = entry?.post_url || '';
+  setStatusUI(entry?.status || 'drafted');
+  $('r-msg').className = 'status'; $('r-msg').textContent = '';
+  $('btn-undo').hidden = !d.canUndo; $('rv-job').className = 'status'; $('rv-job').textContent = '';
+  renderHist(); window.scrollTo({ top: 0 });
 }
 
 $('btn-save').onclick = async () => {
-  busy(true, 'Re-rendering…');
+  $('r-msg').className = 'status'; $('r-msg').textContent = '';
+  let content;
+  try { content = JSON.parse($('r-json').value); } catch { fail(new Error('The slide JSON is not valid.'), $('r-msg')); return; }
+  $('btn-save').disabled = true; $('r-msg').textContent = 'Re-rendering…';
+  try { await post(PA('/save'), { dir: current, content, caption: $('r-caption').value }); await openDraft(current); ok($('r-msg'), 'Saved and re-rendered.'); }
+  catch (e) { fail(e, $('r-msg')); }
+  $('btn-save').disabled = false;
+};
+function currentEdits() {
+  let content; try { content = JSON.parse($('r-json').value); } catch { throw new Error('The slide JSON is not valid. Fix it or reload before using a prompt.'); }
+  return { content, caption: $('r-caption').value };
+}
+$('btn-revise').onclick = async () => {
+  const instruction = $('r-prompt').value.trim();
+  if (!instruction) { fail(new Error('Describe what to change first.'), $('rv-job')); $('r-prompt').focus(); return; }
+  let edits; try { edits = currentEdits(); } catch (e) { fail(e, $('rv-job')); return; }
+  busy(true, 'Claude is editing the post…', 'rv-job');
   try {
-    await call('save', { dir: current, content: JSON.parse($('r-json').value), caption: $('r-caption').value });
-    busy(false); $('job').textContent = 'Saved.'; await openDraft(current); loadLog();
-  } catch (e) { busy(false); fail(e); }
+    await post(PA('/revise'), { dir: current, instruction, ...edits });
+    busy(false, '', 'rv-job'); $('r-prompt').value = '';
+    await loadLog(); await openDraft(current); ok($('rv-job'), 'Updated. Review the slides, or undo.');
+  } catch (e) { busy(false, '', 'rv-job'); fail(e, $('rv-job')); }
+};
+$('btn-undo').onclick = async () => {
+  busy(true, 'Restoring the previous version…', 'rv-job');
+  try { await post(PA('/undoRevise'), { dir: current }); busy(false, '', 'rv-job'); await openDraft(current); ok($('rv-job'), 'Restored the previous version.'); }
+  catch (e) { busy(false, '', 'rv-job'); fail(e, $('rv-job')); }
 };
 async function setStatus(status) {
-  try {
-    await call('status', { dir: current, status, post_url: $('r-url').value.trim() || undefined });
-    $('r-msg').className = 'status'; $('r-msg').textContent = 'Status: ' + status; loadLog();
-  } catch (e) { fail(e, $('r-msg')); }
+  try { await post(PA('/status'), { dir: current, status, post_url: $('r-url').value.trim() || undefined }); await loadLog(); setStatusUI(status); ok($('r-msg'), 'Status: ' + status); }
+  catch (e) { fail(e, $('r-msg')); }
 }
 $('btn-approve').onclick = () => setStatus('approved');
 $('btn-posted').onclick = () => setStatus('posted');
-$('btn-folder').onclick = () => call('openFolder', { dir: current }).catch((e) => fail(e, $('r-msg')));
-$('btn-copy').onclick = async () => { await navigator.clipboard.writeText($('r-caption').value); $('r-msg').className = 'status'; $('r-msg').textContent = 'Caption copied.'; };
+$('btn-folder').onclick = () => post(PA('/openFolder'), { dir: current }).catch((e) => fail(e, $('r-msg')));
+$('btn-copy').onclick = async () => {
+  try { await navigator.clipboard.writeText($('r-caption').value); ok($('r-msg'), 'Caption copied.'); }
+  catch { fail(new Error('Could not copy. Select the caption and copy it manually.'), $('r-msg')); }
+};
 
-async function loadLog() {
-  const log = await (await fetch('/api/log')).json();
-  $('hist').replaceChildren(...log.slice().reverse().map((p) => {
+function renderHist() {
+  const items = logCache.slice().reverse();
+  if (!items.length) { $('hist').replaceChildren(el('li', { className: 'empty', textContent: 'No posts yet.' })); return; }
+  $('hist').replaceChildren(...items.map((p) => {
     const dir = p.local_dir ? p.local_dir.replace('drafts/', '') : null;
-    return el('tr', {}, el('td', { textContent: p.posted_date || p.date }), el('td', { textContent: p.title }),
-      el('td', {}, el('span', { className: 'pill ' + p.status, textContent: p.status })),
-      el('td', {}, dir ? el('button', { textContent: 'Open', onclick: () => openDraft(dir).catch((e) => fail(e)) }) : ''));
+    const b = el('button', { type: 'button', disabled: !dir, onclick: () => (location.hash = `#/p/${project.id}/post/${dir}`) },
+      el('span', { className: 'h-title', textContent: p.title }),
+      el('span', { className: 'h-meta' }, el('span', { className: 'pill ' + p.status, textContent: p.status }), p.posted_date || p.date || ''));
+    if (dir && dir === current) b.setAttribute('aria-current', 'true');
+    return el('li', {}, b);
   }));
 }
-fetch('/api/brand').then((r) => r.json()).then((b) => {
-  $('brand').textContent = b.name + ' · Post Studio'; document.title = b.name + ' Post Studio'; $('logo').hidden = !b.hasLogo;
-  $('fmt').replaceChildren(...b.formats.map((f) => el('option', { value: f.id, textContent: f.label })));
-  $('chn').replaceChildren(...b.channels.map((c) => el('option', { value: c.id, textContent: c.label })));
-  $('fmt').value = b.defaults.format; $('chn').value = b.defaults.channel;
-});
-loadLog();
+
+// ---------- boot ----------
+(async () => {
+  try { meta = await get('/api/meta'); } catch {}
+  try { me = (await get('/api/me')).user; } catch { me = null; }
+  route();
+})();
 </script>
 </body>
 </html>

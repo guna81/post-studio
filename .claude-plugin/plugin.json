@@ -1,6 +1,6 @@
 {
-  "name": "postloom",
+  "name": "post-studio",
   "version": "0.1.0",
-  "description": "Research topics, draft, render and post Instagram carousels from Claude Code. Brand lives in your own workspace folder.",
+  "description": "Post Studio: research topics, draft, render and post social carousels from Claude Code. Projects live in the studio data folder.",
   "license": "MIT"
 }

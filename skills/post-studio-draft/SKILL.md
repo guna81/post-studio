@@ -1,5 +1,5 @@
 ---
-name: postloom-draft
+name: post-studio-draft
 description: Write and render a post (a carousel today; other formats later) plus caption for a chosen topic and channel, and log it as drafted. Use after a topic is chosen.
 ---
 

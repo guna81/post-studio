@@ -16,7 +16,7 @@ const deck = JSON.parse(readFileSync(join(root, dir, 'slides.json'), 'utf8'));
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const total = deck.slides.length;
 const logoFile = brand.logo && join(root, brand.logo);
-const logoUri = logoFile && existsSync(logoFile) ? 'data:image/svg+xml;base64,' + readFileSync(logoFile).toString('base64') : null;
+const logoUri = logoFile && existsSync(logoFile) ? `data:image/${logoFile.toLowerCase().endsWith('.png') ? 'png' : 'svg+xml'};base64,` + readFileSync(logoFile).toString('base64') : null;
 
 function body(s, c, i) {
   const mono = `font-family:'${theme.fonts.mono}',monospace`;

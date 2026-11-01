@@ -1,6 +1,6 @@
 ---
-name: postloom-post
-description: Publish an approved Postloom draft to its channel (Instagram today) and mark it posted. Use only when the user asks to post a specific approved draft.
+name: post-studio-post
+description: Publish an approved Post Studio draft to its channel (Instagram today) and mark it posted. Use only when the user asks to post a specific approved draft.
 ---
 
 # Publish a post

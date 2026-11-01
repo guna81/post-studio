@@ -4,7 +4,7 @@ Up to 10 image slides, size from the workspace `theme.json` (1080×1350 by defau
 
 **Files in a draft folder:** `slides.json` = `{ "title", "slides": [...] }`, `caption.txt`, `slide-N.png`, `review.html`.
 
-**Render:** `node <postloom>/formats/carousel/render.mjs <workspace> drafts/<dir>`
+**Render:** `node <post-studio>/formats/carousel/render.mjs <workspace> drafts/<dir>`
 
 **Slide types** (limits keep text on the slide; every slide may add `footer` ≤55 and `theme`):
 

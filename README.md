@@ -1,40 +1,49 @@
-# Postloom
+# Post Studio
 
-A local studio that turns a topic into a ready-to-post social media asset using your **Claude Code** login. No API key.
+A local, multi-project studio that turns a topic into a ready-to-post social media asset using your **Claude Code** login. No API key.
 
-Today: **carousels** for **Instagram**. The design separates *formats* (what a post is) from *channels* (where it goes), so video, LinkedIn and others can be added without touching the rest.
+Like Label Studio: sign up, create **projects** (platform, theme, goal, audience, tone, logo), and each project keeps its own history, previews and export.
 
-- **Suggest topics**: searches recent news and skips anything already in your log.
-- **Generate**: Claude writes the slides and caption; Postloom renders PNGs with Playwright.
-- **Review**: edit text, re-render, approve, then post manually (Instagram Graph API / browser automation are on the roadmap).
-- **Log**: every post is recorded with date, title and status so you never repeat a topic.
+Today: **carousels** for **Instagram**. *Formats* (what a post is) are separate from *channels* (where it goes), so video, LinkedIn and others can be added later.
+
+- **Suggest topics**: searches recent news for your audience and skips anything already in the project history.
+- **Generate**: Claude writes the slides and caption (guided by the project's goal, audience and tone); Post Studio renders PNGs with Playwright.
+- **Review**: edit, re-render, approve, then post manually.
+- **Edit with a prompt**: on a post, describe a change ("shorten slide 2, add a CTA") and Claude revises the slides and caption. One level of undo.
+- **Account**: change your name, email or password from the link in the top bar.
+- **Theme from your brand**: in a project's settings, pull colours and a logo from your website (it reads the page's CSS) or pick colours from an image (processed in your browser). Platform and format also live in settings.
+- **Export**: one post or a whole project as a ZIP (images, captions, settings) or JSON.
 
 ## Quick start
 
 ```bash
-git clone <this repo> postloom && cd postloom
+git clone <this repo> post-studio && cd post-studio
 npm install && npx playwright install chromium
-node bin/postloom.mjs doctor        # checks Node 20+, Claude Code, Playwright, Chromium
-node bin/postloom.mjs init          # asks about your brand, creates a workspace, starts the studio
+node bin/post-studio.mjs doctor     # checks Node 20+, Claude Code, Playwright, Chromium
+node bin/post-studio.mjs start      # open http://localhost:4173, sign up, create a project
 ```
 
-Once published to npm: `npx postloom init`. Try the sample brand first with `npm run demo`.
-Requires the [Claude Code](https://claude.com/claude-code) CLI, logged in (run `claude` once).
+## Requirements
 
-## Your own workspace
+- **[Claude Code](https://claude.com/claude-code) is required.** Post Studio has no AI of its own and needs no API key. Topic suggestions and slide/caption generation run by calling the `claude` CLI (`claude -p`) on your machine, using your own Claude Code login and plan usage. Install it and run `claude` once to log in. Without it you can still create projects, edit settings, and view or export existing posts, but Suggest topics and Generate will fail.
+- Node 20+, plus Playwright with Chromium (installed by the commands above) for rendering PNGs.
 
-Code lives here; **your brand lives in a separate workspace folder** (keep it in its own repo if you like):
+## Where data lives
+
+Accounts and projects are stored in `~/.post-studio` (override with `POST_STUDIO_HOME`; `post-studio where` prints it). Passwords are scrypt-hashed. Each project is a plain folder:
 
 ```
-my-brand/
-  brand.json      name, about, audience, tone, cta, hashtags, logo (optional path)
-  theme.json      slide size, 4 color themes (blue|light|dark|pop), fonts
-  posts-log.json  created automatically
-  drafts/         one folder per post: slides.json, caption.txt, slide-N.png, review.html
-  assets/         logo etc.
+~/.post-studio/projects/<id>/
+  project.json    id, owner
+  brand.json      name, about, goal, audience, tone, cta, hashtags, logo, colours, defaults
+  theme.json      slide size, 4 colour themes (derived from your two colours), fonts
+  posts-log.json  date, title, status per post
+  drafts/         one folder per post: slides.json, caption.txt, slide-N.png
+  assets/         logo
 ```
 
-`postloom init` creates this for you (give it two colours and it derives the four themes with readable contrast). Run it later with `postloom start ../my-brand` (or `node server.mjs ../my-brand`; env: `POSTLOOM_WORKSPACE`, `PORT`).
+Existing workspace folder? `post-studio import <dir> <your-email>` copies it in as a project.
+Env: `PORT`, `POST_STUDIO_HOME`, `POST_STUDIO_SIGNUP=off` (close signup once the first account exists).
 
 ## Formats and channels
 
@@ -50,10 +59,10 @@ To add one, copy a folder, register it in `formats/registry.mjs` or `channels/re
 
 ## Claude Code plugin (skills)
 
-Point Claude Code at this folder as a plugin (`claude --plugin-dir postloom`) to get `/postloom-setup`, `/postloom-topics`, `/postloom-draft` and `/postloom-post`. They use `cli.mjs` for the log and each format's renderer for output.
+Point Claude Code at this folder as a plugin (`claude --plugin-dir post-studio`) to get `/post-studio-setup`, `/post-studio-topics`, `/post-studio-draft` and `/post-studio-post`. They use `cli.mjs` for the log and each format's renderer for output.
 
 ## Safety
-Binds to 127.0.0.1 only, checks the Host header, accepts JSON only, and gives Claude web search as its only tool; the server writes all files.
+Binds to 127.0.0.1 only, checks the Host header, accepts JSON only, uses HttpOnly SameSite=Strict session cookies, rate-limits login, isolates each user's projects, and gives Claude web search as its only tool; the server writes all files.
 
 ## License
 MIT

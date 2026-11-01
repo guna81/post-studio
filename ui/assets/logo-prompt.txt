@@ -1,0 +1,3 @@
+Generated with the built-in image_gen tool.
+
+Use case: logo-brand. Create a polished minimalist logo symbol for Post Studio, a social media carousel creation app. One bold black geometric monogram P built from overlapping rounded rectangular post cards, with clear white negative space. Flat vector-like precision, memorable silhouette, readable at 32px. Centered single symbol filling 80% of square canvas. Pure black and white only. Solid white background. No words, no mockup, no shadows, no gradients, no extra symbols. Save the generated asset and report its local file path.

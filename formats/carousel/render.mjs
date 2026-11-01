@@ -1,7 +1,7 @@
 // Usage: node formats/carousel/render.mjs <workspace-dir> drafts/2026-11-02-my-topic
 // Reads <workspace>/theme.json, <workspace>/brand.json and <dir>/slides.json; writes <dir>/slide-N.png.
 // Requires: npm i playwright && npx playwright install chromium
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { chromium } from 'playwright';
@@ -71,6 +71,8 @@ for (let i = 0; i < total; i++) {
   console.log('wrote', out);
 }
 await browser.close();
+// Drop PNGs left over from a longer earlier version of this deck.
+for (const f of readdirSync(join(root, dir))) { const m = /^slide-(\d+)\.png$/.exec(f); if (m && +m[1] > total) unlinkSync(join(root, dir, f)); }
 
 // Local review page: open drafts/<dir>/review.html in a browser.
 const imgs = deck.slides.map((_, i) => `<img src="slide-${i + 1}.png" alt="Slide ${i + 1}">`).join('');

@@ -96,6 +96,7 @@ Reply with ONLY a JSON array (no prose) of 5 objects: {"title": short post title
       if (!topic || typeof topic !== 'string' || topic.length > 500) throw new Error('Enter a topic (max 500 characters)');
       const fmt = getFormat(fid), ch = getChannel(cid);
       if (!ch.formats.includes(fmt.id)) throw new Error(`${ch.label} does not accept the ${fmt.id} format`);
+      store.syncSize(root, brand); // make sure the canvas matches the project's chosen post size before rendering
       const log = readLog();
       const used = log.map((p) => p.title);
       const prompt = `Today is ${today()}. Create a ${fmt.id} post for ${ch.label} for ${brand.name}.${context()} Tone: ${brand.tone || 'plain, direct, confident, honest'}.
@@ -182,6 +183,13 @@ ${ch.captionRules(brand)}`;
       return { ok: true };
     },
 
+    async deleteDraft({ dir }) {
+      const d = dirPath(dir);
+      writeLog(readLog().filter((p) => p.local_dir !== `drafts/${dir}`));
+      rmSync(d, { recursive: true, force: true });
+      return { ok: true };
+    },
+
     async status({ dir, status, post_url }) {
       dirPath(dir);
       if (!['drafted', 'approved', 'posted'].includes(status)) throw new Error('Bad status');
@@ -248,7 +256,7 @@ const sendFile = (res, file, type) => {
 };
 const meta = () => ({
   formats: Object.values(formats).map((f) => ({ id: f.id, label: f.label })),
-  channels: Object.values(channels).map((c) => ({ id: c.id, label: c.label, formats: c.formats })),
+  channels: Object.values(channels).map((c) => ({ id: c.id, label: c.label, formats: c.formats, sizes: c.sizes || [], defaultSize: c.defaultSize || null })),
 });
 async function readBody(req) {
   let raw = '';
@@ -275,6 +283,7 @@ http.createServer(async (req, res) => {
 
     if (req.method === 'GET') {
       if (p === '/') return send(res, 200, readFileSync(join(kit, 'ui', 'index.html')), 'text/html; charset=utf-8');
+      if (p === '/assets/post-studio-logo.png') return send(res, 200, readFileSync(join(kit, 'ui', 'assets', 'post-studio-logo.png')), 'image/png');
       if (p === '/api/meta') return send(res, 200, meta());
       if (p === '/api/me') return me ? send(res, 200, { user: auth.publicUser(me) }) : send(res, 401, { error: 'Not logged in' });
       if (p === '/api/projects') return send(res, 200, { projects: store.listProjects(needUser().id) });

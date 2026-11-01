@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Postloom Studio</title>
+<style>
+:root{--blue:#12448F;--ink:#0C2F66;--green:#13631F;--bg:#F4F7FB;--card:#fff;--line:#D5DEEC;--muted:#4A5B78;--err:#A12626}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--blue);padding:14px 24px;display:flex;align-items:center;gap:16px}
+header .chip{background:#fff;border-radius:10px;padding:6px 12px;display:flex}
+header img{height:34px}
+header .chip[hidden]{display:none}
+header h1{margin:0;color:#fff;font-size:18px;font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:24px;display:grid;gap:24px}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+h2{margin:0 0 12px;font-size:18px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--blue);background:#fff;color:var(--blue);padding:10px 16px;min-height:44px}
+button.primary{background:var(--blue);color:#fff}
+button:disabled{opacity:.5;cursor:wait}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #27C93F;outline-offset:2px}
+input,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff}
+textarea{min-height:90px;resize:vertical}
+select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);min-height:44px}
+label{display:block;font-weight:600;margin:12px 0 6px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.topics{display:grid;gap:12px;margin-top:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.topic{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.topic h3{margin:0;font-size:16px}
+.topic p{margin:0;color:var(--muted);font-size:14px}
+.topic a{font-size:13px;color:var(--blue)}
+.topic button{margin-top:auto;align-self:flex-start}
+.slides{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:12px 0}
+.slides img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
+.status{margin:12px 0;color:var(--muted)}
+.error{color:var(--err);font-weight:600;white-space:pre-wrap}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;background:#E3EBF7}
+.pill.posted{background:#D6F2DB;color:#0B4A15}.pill.approved{background:#FFF1CC;color:#6B4A00}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+details summary{cursor:pointer;font-weight:600;margin:8px 0}
+.hint{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<header><span class="chip" id="logo" hidden><img src="/assets/logo" alt=""></span><h1 id="brand">Post Studio</h1></header>
+<main>
+<section aria-labelledby="h-new">
+<h2 id="h-new">1. Pick a topic</h2>
+<div class="row">
+<button class="primary" id="btn-topics">Suggest today's topics</button>
+<span class="hint">Searches recent AI/tech news and skips topics already in your log. Takes about a minute.</span>
+</div>
+<div id="topics" class="topics"></div>
+<label for="topic">Or enter your own topic or plan</label>
+<input id="topic" maxlength="500" placeholder="e.g. How RAG works, explained simply">
+<label for="notes">Notes (optional): points to cover, audience, tone</label>
+<textarea id="notes" maxlength="1500"></textarea>
+<div class="row" style="margin-top:12px"><label for="fmt" class="hint" style="margin:0">Format</label><select id="fmt"></select><label for="chn" class="hint" style="margin:0">Channel</label><select id="chn"></select><button class="primary" id="btn-gen">Generate post</button></div>
+<div id="job" class="status" role="status" aria-live="polite"></div>
+</section>
+
+<section id="review" hidden aria-labelledby="h-rev">
+<h2 id="h-rev">2. Review</h2>
+<div id="r-title" style="font-weight:600"></div>
+<div class="slides" id="r-slides"></div>
+<label for="r-caption">Caption</label>
+<textarea id="r-caption" style="min-height:150px"></textarea>
+<details><summary>Edit content (JSON)</summary>
+<textarea id="r-json" style="min-height:280px;font-family:ui-monospace,monospace;font-size:13px" spellcheck="false"></textarea>
+<p class="hint">Edit the content, then press Save and re-render.</p></details>
+<div class="row" style="margin-top:12px">
+<button class="primary" id="btn-save">Save and re-render</button>
+<button id="btn-approve">Approve</button>
+<button id="btn-folder">Open folder</button>
+<button id="btn-copy">Copy caption</button>
+<a id="open-ch" href="#" target="_blank" rel="noopener"><button type="button" id="open-ch-btn">Open channel</button></a>
+</div>
+<p class="hint" id="r-hint"></p>
+<div class="row">
+<input id="r-url" placeholder="Published post URL (optional)" style="max-width:420px" aria-label="Published post URL">
+<button id="btn-posted">Mark as posted</button>
+</div>
+<div id="r-msg" class="status" role="status" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="h-hist">
+<h2 id="h-hist">History</h2>
+<table><thead><tr><th>Date</th><th>Title</th><th>Status</th><th></th></tr></thead><tbody id="hist"></tbody></table>
+</section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let current = null, timer = null;
+
+async function call(name, body) {
+  const r = await fetch('/api/' + name, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || 'Request failed');
+  return j;
+}
+function el(tag, props = {}, ...kids) {
+  const e = Object.assign(document.createElement(tag), props);
+  kids.forEach((k) => e.append(k));
+  return e;
+}
+function busy(on, msg) {
+  ['btn-topics', 'btn-gen', 'btn-save'].forEach((id) => ($(id).disabled = on));
+  clearInterval(timer);
+  const j = $('job');
+  j.className = 'status';
+  if (on) {
+    const t0 = Date.now();
+    const tick = () => (j.textContent = `${msg} ${Math.round((Date.now() - t0) / 1000)}s`);
+    tick(); timer = setInterval(tick, 1000);
+  }
+}
+function fail(e, target = $('job')) { target.className = 'status error'; target.textContent = e.message; }
+
+$('btn-topics').onclick = async () => {
+  $('topics').replaceChildren();
+  busy(true, 'Searching news…');
+  try {
+    const { topics } = await call('topics');
+    busy(false); $('job').textContent = '';
+    topics.forEach((t) => $('topics').append(el('div', { className: 'topic' },
+      el('h3', { textContent: t.title }), el('p', { textContent: t.angle }), el('p', { textContent: 'Why now: ' + t.why_now }),
+      t.source_url && /^https?:\/\//.test(t.source_url) ? el('a', { href: t.source_url, target: '_blank', rel: 'noopener', textContent: 'Source' }) : '',
+      el('button', { textContent: 'Use this topic', onclick: () => { $('topic').value = t.title; $('notes').value = t.angle; $('topic').scrollIntoView({ behavior: 'smooth' }); } }))));
+  } catch (e) { busy(false); fail(e); }
+};
+
+$('btn-gen').onclick = async () => {
+  const topic = $('topic').value.trim();
+  if (!topic) { fail(new Error('Enter a topic first.')); return; }
+  busy(true, 'Writing and designing the post…');
+  try {
+    const { dir } = await call('generate', { topic, notes: $('notes').value.trim(), format: $('fmt').value, channel: $('chn').value });
+    busy(false); $('job').textContent = 'Done. Review below.';
+    await openDraft(dir); loadLog();
+  } catch (e) { busy(false); fail(e); }
+};
+
+async function openDraft(dir) {
+  const d = await call('draft', { dir });
+  current = dir;
+  $('review').hidden = false;
+  $('r-title').textContent = `${d.title} (${dir})`;
+  const v = Date.now();
+  $('r-slides').replaceChildren(...d.previews.map((f, i) => el('img', { src: `/drafts/${dir}/${f}?v=${v}`, alt: `Preview ${i + 1}` })));
+  $('r-hint').textContent = d.postingHint || '';
+  $('open-ch').href = d.homeUrl || '#'; $('open-ch-btn').textContent = 'Open ' + ($('chn').querySelector(`[value="${d.channel}"]`)?.textContent || 'channel');
+  $('r-caption').value = d.caption;
+  $('r-json').value = JSON.stringify(d.content, null, 2);
+  $('r-msg').textContent = '';
+  $('review').scrollIntoView({ behavior: 'smooth' });
+}
+
+$('btn-save').onclick = async () => {
+  busy(true, 'Re-rendering…');
+  try {
+    await call('save', { dir: current, content: JSON.parse($('r-json').value), caption: $('r-caption').value });
+    busy(false); $('job').textContent = 'Saved.'; await openDraft(current); loadLog();
+  } catch (e) { busy(false); fail(e); }
+};
+async function setStatus(status) {
+  try {
+    await call('status', { dir: current, status, post_url: $('r-url').value.trim() || undefined });
+    $('r-msg').className = 'status'; $('r-msg').textContent = 'Status: ' + status; loadLog();
+  } catch (e) { fail(e, $('r-msg')); }
+}
+$('btn-approve').onclick = () => setStatus('approved');
+$('btn-posted').onclick = () => setStatus('posted');
+$('btn-folder').onclick = () => call('openFolder', { dir: current }).catch((e) => fail(e, $('r-msg')));
+$('btn-copy').onclick = async () => { await navigator.clipboard.writeText($('r-caption').value); $('r-msg').className = 'status'; $('r-msg').textContent = 'Caption copied.'; };
+
+async function loadLog() {
+  const log = await (await fetch('/api/log')).json();
+  $('hist').replaceChildren(...log.slice().reverse().map((p) => {
+    const dir = p.local_dir ? p.local_dir.replace('drafts/', '') : null;
+    return el('tr', {}, el('td', { textContent: p.posted_date || p.date }), el('td', { textContent: p.title }),
+      el('td', {}, el('span', { className: 'pill ' + p.status, textContent: p.status })),
+      el('td', {}, dir ? el('button', { textContent: 'Open', onclick: () => openDraft(dir).catch((e) => fail(e)) }) : ''));
+  }));
+}
+fetch('/api/brand').then((r) => r.json()).then((b) => {
+  $('brand').textContent = b.name + ' · Post Studio'; document.title = b.name + ' Post Studio'; $('logo').hidden = !b.hasLogo;
+  $('fmt').replaceChildren(...b.formats.map((f) => el('option', { value: f.id, textContent: f.label })));
+  $('chn').replaceChildren(...b.channels.map((c) => el('option', { value: c.id, textContent: c.label })));
+  $('fmt').value = b.defaults.format; $('chn').value = b.defaults.channel;
+});
+loadLog();
+</script>
+</body>
+</html>

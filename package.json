@@ -1,0 +1,43 @@
+{
+  "name": "postloom",
+  "version": "0.1.0",
+  "description": "Research topics, draft, render and publish social posts (carousels today, video later) with Claude Code. No API key.",
+  "type": "module",
+  "bin": {
+    "postloom": "bin/postloom.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "demo": "node server.mjs examples/demo",
+    "render": "node formats/carousel/render.mjs",
+    "init": "node bin/postloom.mjs init",
+    "doctor": "node bin/postloom.mjs doctor"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.64.1"
+  },
+  "files": [
+    "bin",
+    "server.mjs",
+    "cli.mjs",
+    "formats",
+    "channels",
+    "ui",
+    "skills",
+    ".claude-plugin",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "social-media",
+    "instagram",
+    "carousel",
+    "claude-code",
+    "content"
+  ]
+}

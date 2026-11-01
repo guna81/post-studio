@@ -1,0 +1,16 @@
+{
+  "name": "Acme AI",
+  "about": "a small team that explains AI to developers",
+  "audience": "developers and students",
+  "tone": "plain, direct, friendly",
+  "cta": "Save this \u00b7 Follow Acme AI",
+  "hashtags": [
+    "#AcmeAI",
+    "#AI"
+  ],
+  "logo": null,
+  "defaults": {
+    "format": "carousel",
+    "channel": "instagram"
+  }
+}

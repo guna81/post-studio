@@ -1,0 +1,43 @@
+{
+  "width": 1080,
+  "height": 1350,
+  "colors": {
+    "blue": {
+      "bg": "#1F3A8A",
+      "text": "#FFFFFF",
+      "muted": "#C7D2FE",
+      "accent": "#FACC15",
+      "accent2": "#FFFFFF",
+      "logoChip": true
+    },
+    "light": {
+      "bg": "#F8FAFC",
+      "text": "#0F172A",
+      "muted": "#475569",
+      "accent": "#1D4ED8",
+      "accent2": "#0F172A",
+      "logoChip": false
+    },
+    "dark": {
+      "bg": "#0F172A",
+      "text": "#FFFFFF",
+      "muted": "#94A3B8",
+      "accent": "#FACC15",
+      "accent2": "#93C5FD",
+      "logoChip": true
+    },
+    "pop": {
+      "bg": "#FACC15",
+      "text": "#1E1B0B",
+      "muted": "#1E1B0B",
+      "accent": "#1E1B0B",
+      "accent2": "#1E1B0B",
+      "logoChip": true
+    }
+  },
+  "fonts": {
+    "display": "Space Grotesk",
+    "mono": "JetBrains Mono",
+    "googleFontsUrl": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500&display=swap"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "post-studio",
   "version": "0.1.0",
-  "description": "Research topics, draft, render and publish social posts (carousels today, video later) with Claude Code. No API key.",
+  "description": "Free open-source Instagram carousel generator for Claude Code. Research topics, write slides and captions, render PNGs and export. No API key.",
   "type": "module",
   "bin": {
     "post-studio": "bin/post-studio.mjs"
@@ -33,10 +33,29 @@
     "node": ">=20"
   },
   "keywords": [
-    "social-media",
     "instagram",
-    "carousel",
+    "instagram-carousel",
+    "carousel-generator",
+    "carousel-maker",
+    "social-media",
+    "social-media-automation",
+    "content-automation",
+    "content-creation",
+    "ai-content",
+    "claude",
     "claude-code",
-    "content"
-  ]
+    "claude-code-plugin",
+    "playwright",
+    "self-hosted",
+    "open-source",
+    "no-api-key"
+  ],
+  "homepage": "https://github.com/guna81/post-studio#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guna81/post-studio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/guna81/post-studio/issues"
+  }
 }

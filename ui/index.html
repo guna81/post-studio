@@ -275,6 +275,18 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
 .brand .project-identity{flex:1;min-width:0}
 .project-settings{display:grid;place-items:center;width:28px;height:28px;flex-shrink:0;color:#888;border-radius:6px;text-decoration:none;margin-left:auto}
 .project-settings:hover{background:#eee;color:#171717}
+
+.optset{border:0;padding:0;margin:18px 0 0;min-width:0}
+.optset legend{padding:0;font-weight:600;font-size:13px;margin-bottom:8px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:inline-flex;align-items:center;gap:8px;margin:0;padding:8px 14px;border:1px solid var(--line,#e2e2e2);border-radius:999px;background:#fafafa;font-weight:500;font-size:13px;line-height:1.2;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.opt:hover{border-color:#222}
+.opt input[type=checkbox]{width:16px;height:16px;margin:0;padding:0;flex:none;accent-color:#111;cursor:pointer}
+.opt:has(input:checked){background:#111;border-color:#111;color:#fff}
+.opt:has(input:checked) input{accent-color:#fff}
+.opt:has(input:focus-visible){outline:2px solid #222;outline-offset:2px}
+#c-emotion,#c-count,#e-emotion,#e-count{width:auto;min-width:160px}
+.edit-opts{margin:14px 0 0}.edit-opts summary{cursor:pointer;font-weight:600;font-size:13px}.hist-bar{align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -403,6 +415,7 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
     <input id="topic" maxlength="500" placeholder="e.g. How RAG works, explained simply">
     <label for="notes">Notes <span class="hint fine">(optional: points to cover, audience, tone)</span></label>
     <textarea id="notes" maxlength="1500" placeholder="What should your audience take away? Add key points, a tone, or a fresh angle…"></textarea>
+    <div id="opts-create"></div>
     <p class="hint" id="create-fmt"></p>
     <div class="row" style="margin-top:18px"><button class="btn primary" id="btn-gen" type="button">Generate post</button></div>
     <div id="job" class="status" role="status" aria-live="polite"></div>
@@ -444,9 +457,15 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
       <section class="card">
         <h2>Edit with a prompt</h2>
         <textarea id="r-prompt" maxlength="1000" style="min-height:84px" aria-label="Describe the change" placeholder="e.g. make the cover punchier, cut slide 4, end with a follow us call to action"></textarea>
+        <details class="edit-opts"><summary>More options (slide count, call-to-action, emotion, elements)</summary><div id="opts-edit"></div></details>
         <div class="actions">
           <button class="btn primary" id="btn-revise" type="button">Apply changes</button>
-          <button class="btn" id="btn-undo" type="button" hidden>Undo last change</button>
+          <button class="btn" id="btn-undo" type="button" hidden>Undo last AI change</button>
+        </div>
+        <div class="row hist-bar" role="group" aria-label="Undo and redo" style="margin-top:12px">
+          <button class="btn sm" id="h-undo" type="button" title="Undo (Ctrl/Cmd+Z)" disabled>↶ Undo</button>
+          <button class="btn sm" id="h-redo" type="button" title="Redo (Ctrl/Cmd+Shift+Z)" disabled>↷ Redo</button>
+          <span class="hint fine" id="h-pos"></span>
         </div>
         <p class="hint" style="margin-bottom:0">Claude edits this post and it is re-rendered. Takes about a minute. Unsaved edits below are included.</p>
         <div id="rv-job" class="status" role="status" aria-live="polite"></div>
@@ -455,6 +474,11 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
       <section class="card">
         <h2>Caption</h2>
         <textarea id="r-caption" style="min-height:170px" aria-label="Caption"></textarea>
+        <textarea id="cap-prompt" maxlength="1000" style="min-height:56px;margin-top:10px" aria-label="Describe the caption change" placeholder="Rewrite the caption with AI, e.g. make it shorter and funnier, end with a question"></textarea>
+        <div class="actions">
+          <button class="btn" id="btn-cap-ai" type="button">Rewrite caption</button>
+        </div>
+        <div id="cap-job" class="status" role="status" aria-live="polite"></div>
         <div class="actions">
           <button class="btn" id="btn-copy" type="button">Copy caption</button>
           <a class="btn" id="open-ch" href="#" target="_blank" rel="noopener"><span id="open-ch-btn">Open platform</span> ↗</a>
@@ -541,9 +565,11 @@ async function download(path, fallbackName, msgEl) {
 function fail(e, target) { target.className = 'status error'; target.textContent = e.message; }
 function ok(target, msg) { target.className = 'status ok'; target.textContent = msg; }
 let busyTarget = 'job';
+let busyNow = false;
 function busy(on, msg, target = 'job') {
-  busyTarget = target;
-  ['btn-topics', 'btn-gen', 'btn-save', 'btn-revise', 'btn-undo'].forEach((id) => ($(id).disabled = on));
+  busyTarget = target; busyNow = on;
+  ['h-undo', 'h-redo'].forEach((id) => { if ($(id)) $(id).disabled = on; });
+  ['btn-topics', 'btn-gen', 'btn-save', 'btn-revise', 'btn-undo', 'btn-cap-ai'].forEach((id) => ($(id).disabled = on));
   clearInterval(timer);
   const j = $(busyTarget); j.className = 'status';
   if (on) { const t0 = Date.now(); const tick = () => j.replaceChildren(el('span', { className: 'spin' }), `${msg} ${Math.round((Date.now() - t0) / 1000)}s`); tick(); timer = setInterval(tick, 1000); }
@@ -662,6 +688,21 @@ function colorField(label, value, onDirty) {
   return { input, node: el('div', {}, el('label', { textContent: label }), input) };
 }
 
+// An extra brand colour the user can add or remove (the first two colours are always required).
+function optColorField(label, value, onDirty) {
+  const input = el('input', { type: 'color', value: value || '#888888', ariaLabel: label });
+  let on = !!value;
+  const rm = el('button', { className: 'btn sm', type: 'button', textContent: 'Remove', ariaLabel: 'Remove ' + label.toLowerCase() });
+  const add = el('button', { className: 'btn sm', type: 'button', textContent: '+ Add ' + label.toLowerCase() });
+  const box = el('div', { className: 'row', style: 'align-items:center' }, input, rm);
+  const sync = () => { box.style.display = on ? '' : 'none'; add.style.display = on ? 'none' : ''; };
+  add.onclick = () => { on = true; sync(); onDirty(); };
+  rm.onclick = () => { on = false; sync(); onDirty(); };
+  input.addEventListener('input', onDirty);
+  sync();
+  return { get value() { return on ? input.value : null; }, set(v) { input.value = v; on = true; sync(); onDirty(); }, node: el('div', {}, el('label', { textContent: label + ' (optional)' }), box, add) };
+}
+
 // Pick the most distinctive colours from an image, in the browser (nothing is uploaded).
 async function colorsFromImage(file) {
   const url = URL.createObjectURL(file);
@@ -698,6 +739,8 @@ function buildForm(form, p, isNew) {
   let dirtyColors = isNew;
   const c1 = colorField('Primary colour', p?.colors?.primary || '#1F3A8A', () => (dirtyColors = true));
   const c2 = colorField('Accent colour', p?.colors?.accent || '#FACC15', () => (dirtyColors = true));
+  const c3 = optColorField('Third colour', p?.colors?.third || null, () => (dirtyColors = true));
+  const c4 = optColorField('Fourth colour', p?.colors?.fourth || null, () => (dirtyColors = true));
   f.channel = el('select', { id: 'f-channel' }); f.format = el('select', { id: 'f-format' });
   f.channel.replaceChildren(...meta.channels.map((c) => el('option', { value: c.id, textContent: c.label })));
   const fillFormats = () => {
@@ -721,7 +764,9 @@ function buildForm(form, p, isNew) {
     el('i', { style: 'background:' + hexv }), el('code', { textContent: hexv }),
     el('div', { className: 'row' },
       el('button', { className: 'btn sm', type: 'button', textContent: 'Primary', ariaLabel: `Use ${hexv} as primary colour`, onclick: () => setColor(c1, hexv) }),
-      el('button', { className: 'btn sm', type: 'button', textContent: 'Accent', ariaLabel: `Use ${hexv} as accent colour`, onclick: () => setColor(c2, hexv) })))));
+      el('button', { className: 'btn sm', type: 'button', textContent: 'Accent', ariaLabel: `Use ${hexv} as accent colour`, onclick: () => setColor(c2, hexv) }),
+      el('button', { className: 'btn sm', type: 'button', textContent: 'Third', ariaLabel: `Use ${hexv} as third colour`, onclick: () => c3.set(hexv) }),
+      el('button', { className: 'btn sm', type: 'button', textContent: 'Fourth', ariaLabel: `Use ${hexv} as fourth colour`, onclick: () => c4.set(hexv) })))));
   f.site = el('input', { id: 'f-site', maxLength: 300, placeholder: 'example.com', autocomplete: 'off' });
   f.siteBtn = el('button', { className: 'btn', type: 'button', textContent: 'Fetch from website', style: 'white-space:nowrap' });
   f.siteBtn.onclick = async () => {
@@ -758,13 +803,14 @@ function buildForm(form, p, isNew) {
     text('hashtags', 'Hashtags', '(comma separated)', { max: 400, ph: '#AI, #LearnAI' }),
     el('div', { className: 'themebox' },
       el('b', { textContent: 'Theme' }),
-      el('p', { className: 'hint', textContent: 'Set the two colours by hand, or pull them from your website or an image.' }),
+      el('p', { className: 'hint', textContent: 'Set two colours by hand, or pull them from your website or an image. Add a third and fourth for more slide variety.' }),
       el('div', { className: 'grid2' }, c1.node, c2.node),
+      el('div', { className: 'grid2', style: 'margin-top:12px' }, c3.node, c4.node),
       el('label', { htmlFor: 'f-site', textContent: 'Website' }),
       el('div', { className: 'row', style: 'flex-wrap:nowrap;align-items:stretch' }, f.site, f.siteBtn),
       el('label', { htmlFor: 'f-img' }, 'Or pick colours from an image ', el('span', { className: 'hint fine', textContent: '(stays in your browser)' })), f.img,
       tmsg, picks),
-    p?.customTheme ? el('p', { className: 'hint', textContent: 'This project uses a hand-made theme. Changing the colours replaces it with one generated from your two colours.' }) : '',
+    p?.customTheme ? el('p', { className: 'hint', textContent: 'This project uses a hand-made theme. Changing the colours replaces it with one generated from your colours.' }) : '',
     el('div', {}, el('label', { htmlFor: 'f-logo' }, 'Logo ', el('span', { className: 'hint fine', textContent: '(SVG or PNG, under 600 KB' + (p?.hasLogo ? '; leave empty to keep the current one' : '') + ')' })), f.logo),
     el('div', { className: 'row', style: 'margin-top:20px' }, f.submit),
     f.msg);
@@ -772,7 +818,7 @@ function buildForm(form, p, isNew) {
 
   f.read = async () => {
     const settings = { name: f.name.value, about: f.about.value, goal: f.goal.value, audience: f.audience.value, tone: f.tone.value, cta: f.cta.value, hashtags: f.hashtags.value, channel: f.channel.value, format: f.format.value, size: f.size.value };
-    if (dirtyColors) settings.colors = { primary: c1.input.value, accent: c2.input.value };
+    if (dirtyColors) settings.colors = { primary: c1.input.value, accent: c2.input.value, third: c3.value, fourth: c4.value };
     let logo;
     const file = f.logo.files[0];
     if (!file && pickedLogo) logo = pickedLogo;
@@ -868,11 +914,12 @@ $('btn-topics').onclick = async () => {
 $('btn-gen').onclick = async () => {
   const topic = $('topic').value.trim();
   if (!topic) { fail(new Error('Enter a topic first.'), $('job')); $('topic').focus(); return; }
+  let o; try { o = createOpts.read(); } catch (e) { fail(e, $('job')); return; }
   busy(true, 'Writing and designing the post…');
   try {
-    const { dir } = await post(PA('/generate'), { topic, notes: $('notes').value.trim() });
+    const { dir } = await post(PA('/generate'), { topic, notes: $('notes').value.trim(), ...o });
     busy(false); $('job').textContent = '';
-    $('topic').value = ''; $('notes').value = '';
+    $('topic').value = ''; $('notes').value = ''; createOpts.reset();
     await loadLog(); location.hash = `#/p/${project.id}/post/${dir}`;
   } catch (e) { busy(false); fail(e, $('job')); }
 };
@@ -897,6 +944,86 @@ function setStatusUI(status) {
   $('btn-approve').disabled = status !== 'drafted';
 }
 
+// Options shared by "Generate" and "Edit with a prompt": slide count, CTAs, emotion, elements.
+const CTA_LIST = ['Follow us', 'Like this post', 'Share with a friend', 'Save this post', 'Comment your thoughts', 'Visit the link in bio', 'Check out more content'];
+const EMO_LIST = ['Inspiring', 'Excited', 'Funny', 'Curious', 'Calm', 'Urgent', 'Empathetic', 'Bold'];
+const EL_LIST = ['Emoji in text', 'Emoji sticker on slides', 'Arrows & highlights'];
+function buildOpts(host, uid, { editing = false } = {}) {
+  const num = el('input', { id: uid + '-count', type: 'number', min: 3, max: 10, step: 1, placeholder: editing ? 'Keep' : 'Auto', inputMode: 'numeric', ariaLabel: 'Number of slides' });
+  num.style.maxWidth = '120px';
+  const emo = el('select', { id: uid + '-emotion' }, el('option', { value: '', textContent: editing ? 'Keep as is' : 'Auto' }), ...EMO_LIST.map((e) => el('option', { textContent: e })));
+  emo.style.maxWidth = '220px';
+  const group = (title, hint, items, name) => {
+    const boxes = items.map((v) => el('input', { type: 'checkbox', name: uid + '-' + name, value: v }));
+    return { boxes, node: el('fieldset', { className: 'optset' }, el('legend', {}, title + ' ', el('span', { className: 'hint fine', textContent: hint })),
+      el('div', { className: 'opts' }, ...items.map((v, i) => el('label', { className: 'opt' }, boxes[i], ' ' + v)))) };
+  };
+  const ctas = group('Call-to-action buttons', editing ? '(optional, added to the last slide)' : '(optional, added to the last slide)', CTA_LIST, 'cta');
+  const els = group('Elements', editing ? '(optional, applied across the slides)' : '(optional, extra touches on the slides)', EL_LIST, 'el');
+  host.replaceChildren(
+    el('label', { htmlFor: uid + '-count' }, 'Number of slides ', el('span', { className: 'hint fine', textContent: editing ? '(optional, 3 to 10. Leave empty to keep the current count)' : '(optional, 3 to 10. Leave empty to let the AI decide, or say it in the notes)' })), num,
+    ctas.node,
+    el('label', { htmlFor: uid + '-emotion' }, 'Emotion ', el('span', { className: 'hint fine', textContent: editing ? '(optional, re-tune the mood of the post)' : '(optional, the mood of the post. Leave on Auto to let the AI decide)' })), emo,
+    els.node);
+  return {
+    read() {
+      const raw = num.value.trim(), n = Number(raw);
+      if (raw && (!Number.isInteger(n) || n < 3 || n > 10)) { num.focus(); throw new Error('Enter a slide count from 3 to 10.'); }
+      return { slides: raw, ctas: ctas.boxes.filter((b) => b.checked).map((b) => b.value), emotion: emo.value, elements: els.boxes.filter((b) => b.checked).map((b) => b.value) };
+    },
+    reset() { num.value = ''; emo.value = ''; [...ctas.boxes, ...els.boxes].forEach((b) => { b.checked = false; }); },
+  };
+}
+const createOpts = buildOpts($('opts-create'), 'c');
+const editOpts = buildOpts($('opts-edit'), 'e', { editing: true });
+
+// ---------- local undo / redo (browser memory, per open post) ----------
+// Every saved state of the open post (slides + caption) is a snapshot. Undo/redo re-applies one and re-renders it.
+const H = { dir: null, stack: [], i: -1, skip: false, max: 50 };
+const snapOf = (content, caption) => JSON.stringify({ content, caption });
+function histTrack(dir, content, caption) {
+  const s = snapOf(content, caption);
+  if (H.dir !== dir) { H.dir = dir; H.stack = [s]; H.i = 0; }
+  else if (H.skip) { H.skip = false; H.stack[H.i] = s; } // server may normalise the content; keep the snapshot in sync
+  else if (H.stack[H.i] !== s) {
+    H.stack = H.stack.slice(0, H.i + 1); H.stack.push(s);
+    if (H.stack.length > H.max) H.stack.shift();
+    H.i = H.stack.length - 1;
+  }
+  histUI();
+}
+function histUI() {
+  $('h-undo').disabled = !(H.i > 0 || histDirty()); $('h-redo').disabled = !(H.i < H.stack.length - 1);
+  $('h-pos').textContent = H.stack.length > 1 ? `Version ${H.i + 1} of ${H.stack.length}` : '';
+}
+function histDirty() {
+  if (H.i < 0) return false;
+  try { return snapOf(JSON.parse($('r-json').value), $('r-caption').value) !== H.stack[H.i]; } catch { return true; }
+}
+async function histGo(to) {
+  if (busyNow) return;
+  const note = $('rv-job');
+  let target = to;
+  if (histDirty() && to === H.i - 1) target = H.i;   // unsaved edits: first undo just discards them
+  if (target < 0 || target >= H.stack.length) return;
+  if (target === H.i) { await openDraft(current, idx); ok(note, 'Discarded unsaved edits.'); return; }
+  const { content, caption } = JSON.parse(H.stack[target]);
+  busy(true, target < H.i ? 'Undoing…' : 'Redoing…', 'rv-job');
+  try {
+    await post(PA('/save'), { dir: current, content, caption });
+    H.i = target; H.skip = true;
+    busy(false, '', 'rv-job'); await loadLog(); await openDraft(current, Math.min(idx, content.length - 1)); // openDraft recomputes undo/redo state
+    ok(note, `Showing version ${H.i + 1} of ${H.stack.length}.`);
+  } catch (e) { busy(false, '', 'rv-job'); fail(e, note); }
+}
+$('h-undo').onclick = () => histGo(H.i - 1);
+$('h-redo').onclick = () => histGo(H.i + 1);
+document.addEventListener('keydown', (e) => {
+  if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z' || $('review').hidden) return;
+  const t = e.target; if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.isContentEditable)) return; // keep native text undo
+  e.preventDefault(); histGo(e.shiftKey ? H.i + 1 : H.i - 1);
+});
+
 async function openDraft(dir, at = 0) {
   const d = await post(PA('/draft'), { dir });
   current = dir; section('review');
@@ -915,6 +1042,7 @@ async function openDraft(dir, at = 0) {
   setStatusUI(entry?.status || 'drafted');
   $('r-msg').className = 'status'; $('r-msg').textContent = '';
   $('btn-undo').hidden = !d.canUndo; $('rv-job').className = 'status'; $('rv-job').textContent = '';
+  histTrack(dir, d.content, d.caption);
   renderHist(); window.scrollTo({ top: 0 });
 }
 
@@ -950,13 +1078,24 @@ function currentEdits() {
 $('btn-revise').onclick = async () => {
   const instruction = $('r-prompt').value.trim();
   if (!instruction) { fail(new Error('Describe what to change first.'), $('rv-job')); $('r-prompt').focus(); return; }
-  let edits; try { edits = currentEdits(); } catch (e) { fail(e, $('rv-job')); return; }
+  let edits, opts; try { edits = currentEdits(); opts = editOpts.read(); } catch (e) { fail(e, $('rv-job')); return; }
   busy(true, 'Claude is editing the post…', 'rv-job');
   try {
-    await post(PA('/revise'), { dir: current, instruction, ...edits });
-    busy(false, '', 'rv-job'); $('r-prompt').value = '';
+    await post(PA('/revise'), { dir: current, instruction, ...edits, ...opts });
+    busy(false, '', 'rv-job'); $('r-prompt').value = ''; editOpts.reset();
     await loadLog(); await openDraft(current); ok($('rv-job'), 'Updated. Review the slides, or undo.');
   } catch (e) { busy(false, '', 'rv-job'); fail(e, $('rv-job')); }
+};
+$('btn-cap-ai').onclick = async () => {
+  const instruction = $('cap-prompt').value.trim();
+  if (!instruction) { fail(new Error('Describe how to change the caption first.'), $('cap-job')); $('cap-prompt').focus(); return; }
+  let edits; try { edits = currentEdits(); } catch (e) { fail(e, $('cap-job')); return; }
+  busy(true, 'Claude is rewriting the caption…', 'cap-job');
+  try {
+    const r = await post(PA('/reviseCaption'), { dir: current, instruction, ...edits });
+    busy(false, '', 'cap-job'); $('r-caption').value = r.caption; $('cap-prompt').value = '';
+    ok($('cap-job'), 'Caption updated below. Save to keep it, or Undo to discard.'); histUI();
+  } catch (e) { busy(false, '', 'cap-job'); fail(e, $('cap-job')); }
 };
 $('btn-undo').onclick = async () => {
   busy(true, 'Restoring the previous version…', 'rv-job');

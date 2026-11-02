@@ -82,6 +82,21 @@ function projectApi(root) {
     if (e.local_dir) { const log = readLog(); log.find((p) => p.local_dir === e.local_dir).slides = content.length; writeLog(log); }
   }
 
+const CTAS = ['Follow us', 'Like this post', 'Share with a friend', 'Save this post', 'Comment your thoughts', 'Visit the link in bio', 'Check out more content'];
+const EMOTIONS = ['Inspiring', 'Excited', 'Funny', 'Curious', 'Calm', 'Urgent', 'Empathetic', 'Bold'];
+const ELEMENTS = ['Emoji in text', 'Emoji sticker on slides', 'Arrows & highlights'];
+// Validate the options shared by "create" and "edit with a prompt".
+function pickOpts({ slides, ctas, emotion, elements }) {
+  const count = slides == null || slides === '' ? undefined : Number(slides);
+  if (count !== undefined && (!Number.isInteger(count) || count < 3 || count > 10)) throw new Error('Choose 3 to 10 slides');
+  return {
+    count,
+    picked: Array.isArray(ctas) ? CTAS.filter((c) => ctas.includes(c)) : [],
+    mood: EMOTIONS.includes(emotion) ? emotion : '',
+    els: Array.isArray(elements) ? ELEMENTS.filter((e) => elements.includes(e)) : [],
+  };
+}
+
   const api = {
     async topics() {
       const used = readLog().map((p) => p.title);
@@ -92,20 +107,21 @@ Reply with ONLY a JSON array (no prose) of 5 objects: {"title": short post title
       return { topics: extractJson(await askClaude(prompt, root)) };
     },
 
-    async generate({ topic, notes, format: fid, channel: cid }) {
+    async generate({ topic, notes, slides, ctas, emotion, elements, format: fid, channel: cid }) {
       if (!topic || typeof topic !== 'string' || topic.length > 500) throw new Error('Enter a topic (max 500 characters)');
       const fmt = getFormat(fid), ch = getChannel(cid);
       if (!ch.formats.includes(fmt.id)) throw new Error(`${ch.label} does not accept the ${fmt.id} format`);
+      const { count, picked, mood, els } = pickOpts({ slides, ctas, emotion, elements });
       store.syncSize(root, brand); // make sure the canvas matches the project's chosen post size before rendering
       const log = readLog();
       const used = log.map((p) => p.title);
       const prompt = `Today is ${today()}. Create a ${fmt.id} post for ${ch.label} for ${brand.name}.${context()} Tone: ${brand.tone || 'plain, direct, confident, honest'}.
 Topic: ${JSON.stringify(topic)}
-${notes ? 'Extra notes from the user: ' + JSON.stringify(String(notes).slice(0, 1500)) : ''}
+${mood ? `Emotion to convey: ${mood}. Let it shape word choice and rhythm.\n` : ''}${notes ? 'Extra notes from the user: ' + JSON.stringify(String(notes).slice(0, 1500)) : ''}
 Do not repeat these already-posted titles: ${JSON.stringify(used)}.
 Use web search to verify any fact, number or price. Label estimates as estimates. Never invent statistics.
 
-${fmt.outputSpec({ brand, themes: THEMES })}
+${fmt.outputSpec({ brand, themes: THEMES, count, ctas: picked, elements: els })}
 ${ch.captionRules(brand)}`;
       const data = extractJson(await askClaude(prompt, root));
       const content = fmt.clean(data.content ?? data.slides, { themes: THEMES });
@@ -142,7 +158,8 @@ ${ch.captionRules(brand)}`;
     },
 
     // Ask Claude to change an existing post. Sends the editor's current content so unsaved edits are kept.
-    async revise({ dir, instruction, content, caption }) {
+    async revise({ dir, instruction, content, caption, slides, ctas, emotion, elements }) {
+      const { count, picked, mood, els } = pickOpts({ slides, ctas, emotion, elements });
       if (typeof instruction !== 'string' || !instruction.trim() || instruction.length > 1000) throw new Error('Describe the change in 1 to 1000 characters');
       const d = dirPath(dir), e = entryFor(dir) || {};
       const fmt = getFormat(e.format), ch = getChannel(e.channel);
@@ -155,11 +172,11 @@ Current content: ${JSON.stringify(base)}
 Current caption: ${JSON.stringify(cap)}
 
 The user asks: ${JSON.stringify(instruction.trim())}
-
+${mood ? `Emotion to convey in the edited post: ${mood}. Let it shape word choice and rhythm.\n` : ''}${count ? `The edited post must have exactly ${count} slides.\n` : ''}${picked.length ? `Make sure the last slide includes these calls to action: ${picked.join(', ')}.\n` : ''}${els.length ? `Apply these elements across the slides: ${els.join(', ')}.\n` : ''}
 Change only what the request needs and keep everything else as it is. Use web search to verify any new fact, number or price. Never invent statistics.
 Reply with the FULL updated post in this format (the "slug" is ignored, keep the title unless the request changes it):
 
-${fmt.outputSpec({ brand, themes: THEMES })}
+${fmt.outputSpec({ brand, themes: THEMES, count, ctas: picked, elements: els })}
 ${ch.captionRules(brand)}`;
       const data = extractJson(await askClaude(prompt, root));
       const next = fmt.clean(data.content ?? data.slides, { themes: THEMES });
@@ -169,6 +186,29 @@ ${ch.captionRules(brand)}`;
       await writeDraft(dir, fmt, String(data.title || file.title).slice(0, 100), next, data.caption ?? cap);
       if (e.local_dir) { const log = readLog(); const le = log.find((p) => p.local_dir === e.local_dir); if (le.status === 'approved') le.status = 'drafted'; writeLog(log); }
       return { ok: true };
+    },
+
+    // Rewrites only the caption. Returns it without saving, so the user can review, save or undo.
+    async reviseCaption({ dir, instruction, content, caption }) {
+      if (typeof instruction !== 'string' || !instruction.trim() || instruction.length > 1000) throw new Error('Describe the caption change in 1 to 1000 characters');
+      const d = dirPath(dir), e = entryFor(dir) || {};
+      const fmt = getFormat(e.format), ch = getChannel(e.channel);
+      const file = readJson(join(d, fmt.contentFile));
+      const base = fmt.clean(content ?? fmt.unwrap(file), { themes: THEMES });
+      const cap = String(caption ?? (existsSync(join(d, 'caption.txt')) ? readFileSync(join(d, 'caption.txt'), 'utf8') : '')).slice(0, 4000);
+      const prompt = `You are rewriting only the caption of an existing ${fmt.id} post for ${ch.label} for ${brand.name}.${context()} Tone: ${brand.tone || 'plain, direct, confident, honest'}.
+Post title: ${JSON.stringify(file.title)}
+Slides (do not change): ${JSON.stringify(base)}
+Current caption: ${JSON.stringify(cap)}
+
+The user asks: ${JSON.stringify(instruction.trim())}
+Change only what the request needs. Never invent facts or statistics.
+Reply with JSON only: {"caption": "<the full new caption>"}
+${ch.captionRules(brand)}`;
+      const data = extractJson(await askClaude(prompt, root));
+      const out = String(data.caption || '').trim();
+      if (!out) throw new Error('The AI returned an empty caption. Try again.');
+      return { caption: out.slice(0, 4000) };
     },
 
     async undoRevise({ dir }) {
@@ -267,7 +307,7 @@ async function readBody(req) {
 const running = new Set(); // project ids with a slow job in flight
 let slowJobs = 0;
 const MAX_SLOW = 2;
-const SLOW = new Set(['topics', 'generate', 'save', 'revise', 'undoRevise']);
+const SLOW = new Set(['topics', 'generate', 'save', 'revise', 'reviseCaption', 'undoRevise']);
 
 http.createServer(async (req, res) => {
   try {

@@ -20,6 +20,9 @@ async function doctor({ quiet = false } = {}) {
   add('Chromium browser installed', chromiumOk, `cd ${kit} && npx playwright install chromium`);
   for (const k of checks) console.log(`${k.ok ? '  ok ' : ' FAIL'}  ${k.name}${k.ok ? '' : '\n        fix: ' + k.fix}`);
   const ok = checks.every((k) => k.ok);
+  // Optional: AI images need the Codex CLI (logged in). Without it, posts are made without pictures.
+  const cx = spawnSync('codex', ['--version'], { encoding: 'utf8' });
+  console.log(cx.status === 0 ? '  ok   Codex CLI on PATH (optional, used for AI images)' : '  note Codex CLI not found (optional): posts will have no AI images. Install it and run `codex login` to enable them');
   if (!quiet) console.log(ok ? '\nAll good. Not checked: whether `claude` is logged in. Run `claude` once if topics fail with an auth error.' : '\nFix the items above, then run `post-studio doctor` again.');
   return ok;
 }

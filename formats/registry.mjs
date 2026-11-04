@@ -1,2 +1,3 @@
 import carousel from './carousel/index.mjs';
-export const formats = { [carousel.id]: carousel };
+import reel from './reel/index.mjs';
+export const formats = { [carousel.id]: carousel, [reel.id]: reel };

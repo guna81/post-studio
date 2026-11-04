@@ -191,7 +191,7 @@ main{padding:52px clamp(24px,4vw,64px) 72px;max-width:1260px}
 #create>.card:first-of-type h2{margin-bottom:12px}
 #create>.card:first-of-type .hint{flex:1;min-width:180px;font-size:12px}
 #create>.card:nth-of-type(2){margin-top:24px}
-#notes{min-height:120px}
+#topic{min-height:180px}
 #btn-gen{min-width:170px}
 .topic{background:#fafafa;padding:20px}
 .steps{gap:1px;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:26px}
@@ -287,6 +287,7 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
 .opt:has(input:focus-visible){outline:2px solid #222;outline-offset:2px}
 #c-emotion,#c-count,#e-emotion,#e-count{width:auto;min-width:160px}
 .edit-opts{margin:14px 0 0}.edit-opts summary{cursor:pointer;font-weight:600;font-size:13px}.hist-bar{align-items:center;gap:8px}
+.quick-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.quick-options select,.quick-options input{max-width:none!important}.prompt-footer{border:1px solid var(--line);border-top:0;padding:8px;border-radius:0 0 10px 10px}.prompt-footer .btn{font-size:12px;min-height:32px;padding:6px 10px}#topic{border-radius:10px 10px 0 0}#opts-create>label.row input,#opts-edit>label.row input{width:18px;height:18px;margin:0}#slide-text-fields textarea{min-height:64px}#save-state{margin-bottom:0}@media(max-width:600px){.quick-options{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -400,25 +401,32 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
   <p class="lead" id="create-lead">Pick a topic, generate the post, then review it before anything goes out.</p>
 
   <div class="compose-layout"><div class="compose-brief">
-  <section class="card" aria-labelledby="h-topics">
-    <h2 id="h-topics">A little inspiration to get started.</h2>
-    <div class="row">
-      <button class="btn" id="btn-topics" type="button">Suggest today's topics</button>
-      <span class="hint">Searches recent news for your audience and skips anything already in your history. About a minute.</span>
-    </div>
-    <div id="topics" class="topics"></div>
-  </section>
+
 
   <section class="card" aria-labelledby="h-new">
-    <h2 id="h-new">Bring your idea to life</h2>
-    <label for="topic" style="margin-top:0">Topic</label>
-    <input id="topic" maxlength="500" placeholder="e.g. How RAG works, explained simply">
-    <label for="notes">Notes <span class="hint fine">(optional: points to cover, audience, tone)</span></label>
-    <textarea id="notes" maxlength="1500" placeholder="What should your audience take away? Add key points, a tone, or a fresh angle…"></textarea>
+    <h2 id="h-new">What would you like to post about?</h2>
+    <label for="topic" style="margin-top:0">Post prompt</label>
+    <textarea id="topic" maxlength="2000" placeholder="Create a carousel comparing ChatGPT, Claude, and Gemini for small business owners. Include practical examples and end with a takeaway."></textarea>
+    <div class="row prompt-footer" style="margin-top:0"><button class="btn" id="btn-improve" type="button">Improve prompt</button><button class="btn" id="btn-prompt-undo" type="button" hidden>Undo improvement</button><span id="prompt-count" class="hint" style="margin-left:auto">0 / 2000</span></div>
+    <p class="hint">Start with a rough idea. Improve it here, then review before generating.</p>
     <div id="opts-create"></div>
     <p class="hint" id="create-fmt"></p>
     <div class="row" style="margin-top:18px"><button class="btn primary" id="btn-gen" type="button">Generate post</button></div>
     <div id="job" class="status" role="status" aria-live="polite"></div>
+  </section>
+  <section class="card" aria-labelledby="h-topics">
+    <h2 id="h-topics">Need an idea?</h2>
+    <div class="row">
+      <button class="btn" id="btn-topics" type="button">Suggest topics</button>
+      <span class="hint">Searches recent news for your audience and skips anything already in your history. About a minute.</span>
+    </div>
+    <div id="topics" class="topics"></div>
+  </section>
+  <section class="card" aria-labelledby="h-toolkit">
+    <h2 id="h-toolkit">Instagram toolkit</h2>
+    <details><summary>Plan a week</summary><label for="plan-focus">Weekly focus</label><textarea id="plan-focus" maxlength="1000" placeholder="Launch a new service to busy founders"></textarea><button class="btn" id="btn-plan" type="button">Build seven-day plan</button><div id="plan-result" class="status" role="status"></div></details>
+    <details><summary>Audit a profile</summary><label for="profile-details">Profile details or screenshot notes</label><textarea id="profile-details" maxlength="3000" placeholder="Paste the bio, links, highlights, pinned posts, and what you want visitors to do."></textarea><button class="btn" id="btn-profile-audit" type="button">Audit profile</button><div id="profile-result" class="status" role="status"></div></details>
+    <details><summary>Draft a comment or DM reply</summary><label for="engagement-type">Reply type</label><select id="engagement-type"><option value="comment">Comment</option><option value="dm">DM</option></select><label for="engagement-message">Incoming message</label><textarea id="engagement-message" maxlength="2000"></textarea><button class="btn" id="btn-engagement" type="button">Draft replies</button><div id="engagement-result" class="status" role="status"></div></details>
   </section>
   </div><section class="creative-preview" aria-labelledby="preview-heading"><div class="preview-top"><h2 id="preview-heading">Creative direction</h2><span class="preview-badge">CONCEPT</span></div><div class="post-concept"><span class="concept-kicker">YOUR NEXT CAROUSEL / 01</span><h3 id="concept-title">It starts<br>with an idea.</h3><div class="concept-bottom"><span>MAKE EVERY SWIPE COUNT</span><span aria-hidden="true">↗</span></div></div><div class="preview-pagination" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><p class="preview-note">Your idea, taking shape.</p><p class="hint">This is a concept preview. Generate your post to see the finished slides in your brand’s style.</p><ol class="creation-guide"><li><span>01</span><div><b>Start with a spark</b><small>Add your topic and a little direction.</small></div></li><li><span>02</span><div><b>Make it yours</b><small>Review slides, refine the copy.</small></div></li><li><span>03</span><div><b>Ready for the feed</b><small>Approve, export, and share.</small></div></li></ol></section></div>
 </div>
@@ -451,34 +459,46 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
         <button class="btn sm" id="sl-right" type="button" aria-label="Move slide later" title="Move slide later"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 7 5 5-5 5"/></svg></button></div>
         <button class="btn sm danger" id="sl-del" type="button" title="Delete selected slide"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/></svg><span>Delete</span></button>
       </div>
+      <section class="card" style="margin-top:14px"><h2>Selected slide</h2>
+        <label for="slide-theme">Background style</label><select id="slide-theme"></select>
+        <div id="slide-text-fields"></div>
+        <div id="slide-illustration-fields" hidden><label for="slide-illustration">Illustration</label><select id="slide-illustration"><option value="">None</option><option value="ai-chip">AI chip</option><option value="growth">Growth</option><option value="target">Target</option><option value="idea">Idea</option><option value="workflow">Workflow</option><option value="conversation">Conversation</option></select><p class="hint">Uses this slide’s colours. Selecting an illustration replaces its AI image when saved.</p></div><div id="slide-image-fields" hidden><label for="slide-image-prompt">AI image description</label><textarea id="slide-image-prompt" maxlength="400" placeholder="Describe the image to add or replace. A new description creates a new image when you save."></textarea><button class="btn sm" id="remove-slide-image" type="button">Remove image</button></div>
+        <p class="hint">Save changes to update the preview.</p>
+        <label for="post-font">Post font</label><select id="post-font"></select><p class="hint" id="save-state" role="status">Saved</p><button class="btn primary" id="btn-slide-save" type="button">Save changes</button>
+      </section>
+      <div class="row" id="image-layout-tools" hidden style="margin-top:12px">
+        <label for="image-layout">Image layout</label>
+        <select id="image-layout"><option value="auto">Automatic</option><option value="background">Image background</option><option value="split-left">Image on left</option><option value="split-right">Image on right</option><option value="image-top">Image above text</option><option value="image-bottom">Image below text</option></select>
+        <span class="hint">Save and re-render to apply.</span>
+      </div>
     </div>
 
     <div>
       <section class="card">
-        <h2>Edit with a prompt</h2>
+        <h2>Edit with AI</h2><label for="edit-scope">Apply to</label><select id="edit-scope"><option value="all">Entire post</option><option value="selected">Selected slide</option></select><label for="r-prompt">What should change?</label>
         <textarea id="r-prompt" maxlength="1000" style="min-height:84px" aria-label="Describe the change" placeholder="e.g. make the cover punchier, cut slide 4, end with a follow us call to action"></textarea>
-        <details class="edit-opts"><summary>More options (slide count, call-to-action, emotion, elements)</summary><div id="opts-edit"></div></details>
+        <details class="edit-opts"><summary>More options</summary><div id="opts-edit"></div></details>
         <div class="actions">
           <button class="btn primary" id="btn-revise" type="button">Apply changes</button>
-          <button class="btn" id="btn-undo" type="button" hidden>Undo last AI change</button>
+          <button class="btn" id="btn-undo" type="button" hidden>Restore previous session’s AI edit</button>
         </div>
         <div class="row hist-bar" role="group" aria-label="Undo and redo" style="margin-top:12px">
           <button class="btn sm" id="h-undo" type="button" title="Undo (Ctrl/Cmd+Z)" disabled>↶ Undo</button>
           <button class="btn sm" id="h-redo" type="button" title="Redo (Ctrl/Cmd+Shift+Z)" disabled>↷ Redo</button>
           <span class="hint fine" id="h-pos"></span>
         </div>
-        <p class="hint" style="margin-bottom:0">Claude edits this post and it is re-rendered. Takes about a minute. Unsaved edits below are included.</p>
+        <p class="hint" style="margin-bottom:0">Your changes are saved and the preview is updated. This can take about a minute.</p>
         <div id="rv-job" class="status" role="status" aria-live="polite"></div>
       </section>
 
       <section class="card">
-        <h2>Caption</h2>
+        <h2>Caption</h2><label for="r-caption">Post caption</label>
         <textarea id="r-caption" style="min-height:170px" aria-label="Caption"></textarea>
-        <textarea id="cap-prompt" maxlength="1000" style="min-height:56px;margin-top:10px" aria-label="Describe the caption change" placeholder="Rewrite the caption with AI, e.g. make it shorter and funnier, end with a question"></textarea>
+        <details><summary>Rewrite caption with AI</summary><label for="cap-prompt">How should we change it?</label><textarea id="cap-prompt" maxlength="1000" style="min-height:56px;margin-top:10px" aria-label="Describe the caption change" placeholder="Rewrite the caption with AI, e.g. make it shorter and funnier, end with a question"></textarea>
         <div class="actions">
           <button class="btn" id="btn-cap-ai" type="button">Rewrite caption</button>
         </div>
-        <div id="cap-job" class="status" role="status" aria-live="polite"></div>
+        <div id="cap-job" class="status" role="status" aria-live="polite"></div></details>
         <div class="actions">
           <button class="btn" id="btn-copy" type="button">Copy caption</button>
           <a class="btn" id="open-ch" href="#" target="_blank" rel="noopener"><span id="open-ch-btn">Open platform</span> ↗</a>
@@ -488,14 +508,17 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
         <details><summary>Edit slide content (JSON)</summary>
           <textarea id="r-json" class="mono" spellcheck="false" aria-label="Slide content JSON"></textarea>
         </details>
-        <div class="row" style="margin-top:14px"><button class="btn" id="btn-save" type="button">Save and re-render</button></div>
+        <div class="row" style="margin-top:14px"><button class="btn" id="btn-save" type="button">Save changes</button><button class="btn" id="btn-images" type="button">Add / retry AI images</button></div>
       </section>
 
       <section class="card">
-        <h2>Publish</h2>
+        <h2>Approve &amp; export</h2>
+        <div class="actions" style="margin-top:0"><button class="btn" id="btn-quality" type="button">Run publishing checks</button></div>
+        <div id="quality-result" class="status" role="status"></div>
         <div class="actions" style="margin-top:0">
           <button class="btn primary" id="btn-approve" type="button">Approve</button>
         </div>
+        <details><summary>Record manual Insights</summary><p class="hint">Enter metrics from Instagram after publishing. Post Studio never fetches or invents account analytics.</p><div class="row"><input id="insights-reach" type="number" min="0" placeholder="Reach"><input id="insights-saves" type="number" min="0" placeholder="Saves"><input id="insights-shares" type="number" min="0" placeholder="Shares"><input id="insights-follows" type="number" min="0" placeholder="Follows"></div><button class="btn" id="btn-insights" type="button">Save Insights</button><div id="insights-result" class="status" role="status"></div></details>
         <label for="r-url">Published post URL <span class="hint fine">(optional)</span></label>
         <div class="row">
           <input id="r-url" placeholder="https://…" style="flex:1;min-width:200px">
@@ -533,7 +556,7 @@ aside{background:#fafafa}.studio-wordmark{padding:20px 20px;font-size:19px;gap:8
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach((k) => e.append(k)); return e; };
 
-$('topic').addEventListener('input', () => { $('concept-title').textContent = $('topic').value.trim() || 'It starts with an idea.'; });
+$('topic').addEventListener('input', () => { $('prompt-count').textContent = $('topic').value.length + ' / 2000'; if (project?.id) localStorage.setItem('post-prompt-' + project.id, $('topic').value); $('concept-title').textContent = $('topic').value.trim().split('\n')[0].slice(0, 120) || 'It starts with an idea.'; });
 
 let me = null, meta = { formats: [], channels: [] };
 let project = null, logCache = [], current = null, slides = [], idx = 0, timer = null;
@@ -569,7 +592,7 @@ let busyNow = false;
 function busy(on, msg, target = 'job') {
   busyTarget = target; busyNow = on;
   ['h-undo', 'h-redo'].forEach((id) => { if ($(id)) $(id).disabled = on; });
-  ['btn-topics', 'btn-gen', 'btn-save', 'btn-revise', 'btn-undo', 'btn-cap-ai'].forEach((id) => ($(id).disabled = on));
+  ['btn-topics', 'btn-improve', 'btn-prompt-undo', 'btn-gen', 'btn-slide-save', 'btn-save', 'btn-images', 'btn-revise', 'btn-undo', 'btn-cap-ai'].forEach((id) => ($(id).disabled = on));
   clearInterval(timer);
   const j = $(busyTarget); j.className = 'status';
   if (on) { const t0 = Date.now(); const tick = () => j.replaceChildren(el('span', { className: 'spin' }), `${msg} ${Math.round((Date.now() - t0) / 1000)}s`); tick(); timer = setInterval(tick, 1000); }
@@ -729,6 +752,10 @@ async function colorsFromImage(file) {
     return out;
   } finally { URL.revokeObjectURL(url); }
 }
+function fillFontSelect(select, value = '', inherited = 'Project default') {
+  select.replaceChildren(el('option', { value: '', textContent: inherited }), ...(meta.fonts || []).map((f) => el('option', { value: f.id, textContent: f.label })));
+  select.value = value;
+}
 function buildForm(form, p, isNew) {
   const f = {};
   const text = (key, label, hint, props = {}) => {
@@ -755,6 +782,7 @@ function buildForm(form, p, isNew) {
   };
   f.channel.onchange = () => { fillFormats(); fillSizes(); };
   f.channel.value = p?.channel || meta.channels[0]?.id; fillFormats(); fillSizes(); if (p?.format) f.format.value = p.format;
+  f.font = el('select', { id: 'f-font' }); fillFontSelect(f.font, p?.font || '', 'Theme default');
   f.logo = el('input', { type: 'file', id: 'f-logo', accept: '.svg,.png,image/svg+xml,image/png' });
   let pickedLogo = null;
   const setColor = (c, hexv) => { c.input.value = hexv; dirtyColors = true; };
@@ -800,6 +828,7 @@ function buildForm(form, p, isNew) {
     el('div', { className: 'grid2' }, text('tone', 'Tone of voice', '', { ph: 'plain, direct, confident' }), text('cta', 'Closing call to action', '', { ph: 'Save this · Follow us' })),
     el('div', { className: 'grid2' }, el('div', {}, el('label', { htmlFor: 'f-channel', textContent: 'Platform' }), f.channel), el('div', {}, el('label', { htmlFor: 'f-format', textContent: 'Format' }), f.format)),
     el('div', {}, el('label', { htmlFor: 'f-size', textContent: 'Post size' }), f.size, el('p', { className: 'hint', textContent: 'Every slide is rendered at this size. Pick the ratio your platform shows best.' })),
+    el('div', {}, el('label', { htmlFor: 'f-font', textContent: 'Default post font' }), f.font, el('p', { className: 'hint', textContent: 'Used for new posts. You can choose a different font for each post.' })),
     text('hashtags', 'Hashtags', '(comma separated)', { max: 400, ph: '#AI, #LearnAI' }),
     el('div', { className: 'themebox' },
       el('b', { textContent: 'Theme' }),
@@ -817,7 +846,7 @@ function buildForm(form, p, isNew) {
   if (p) { f.hashtags.value = (p.hashtags || []).join(', '); }
 
   f.read = async () => {
-    const settings = { name: f.name.value, about: f.about.value, goal: f.goal.value, audience: f.audience.value, tone: f.tone.value, cta: f.cta.value, hashtags: f.hashtags.value, channel: f.channel.value, format: f.format.value, size: f.size.value };
+    const settings = { name: f.name.value, about: f.about.value, goal: f.goal.value, audience: f.audience.value, tone: f.tone.value, cta: f.cta.value, hashtags: f.hashtags.value, channel: f.channel.value, format: f.format.value, size: f.size.value, font: f.font.value };
     if (dirtyColors) settings.colors = { primary: c1.input.value, accent: c2.input.value, third: c3.value, fourth: c4.value };
     let logo;
     const file = f.logo.files[0];
@@ -847,6 +876,7 @@ function showNew() {
 // ---------- project ----------
 async function loadLog() { logCache = await get(PA('/log')); renderHist(); }
 function applyProject(p) {
+  if (project?.id !== p.id) createOpts.reset();
   project = p;
   document.documentElement.style.setProperty('--ratio', `${p.width || 1080}/${p.height || 1350}`); $('brand').textContent = p.name; $('brand-sub').textContent = platformLabel(p.channel);
   document.title = p.name + ' · Post Studio';
@@ -872,7 +902,7 @@ async function showProject(id, sub, dir) {
   showCreate();
 }
 
-function showCreate() { current = null; section('create'); renderHist(); window.scrollTo({ top: 0 }); }
+function showCreate() { $('topic').value = localStorage.getItem('post-prompt-' + project.id) || ''; previousPrompt = ''; $('btn-prompt-undo').hidden = true; $('topic').dispatchEvent(new Event('input')); fillFontSelect(createOpts.font, createOpts.font.value); current = null; section('create'); renderHist(); window.scrollTo({ top: 0 }); }
 $('btn-new').onclick = () => { const h = `#/p/${project.id}`; if (location.hash === h) showCreate(); else location.hash = h; };
 
 function showSettings() {
@@ -907,19 +937,71 @@ $('btn-topics').onclick = async () => {
     topics.forEach((t) => $('topics').append(el('div', { className: 'topic' },
       el('h3', { textContent: t.title }), el('p', { textContent: t.angle }), el('p', { textContent: 'Why now: ' + t.why_now }),
       t.source_url && /^https?:\/\//.test(t.source_url) ? el('a', { href: t.source_url, target: '_blank', rel: 'noopener', textContent: 'Source ↗' }) : '',
-      el('button', { className: 'btn', type: 'button', textContent: 'Use this topic', onclick: () => { $('topic').value = t.title; $('notes').value = t.angle; $('topic').focus(); $('topic').scrollIntoView({ behavior: 'smooth', block: 'center' }); } }))));
+      el('button', { className: 'btn', type: 'button', textContent: 'Use this topic', onclick: () => { $('topic').value = t.title + '\n\n' + t.angle; $('topic').dispatchEvent(new Event('input')); $('topic').focus(); $('topic').scrollIntoView({ behavior: 'smooth', block: 'center' }); } }))));
   } catch (e) { busy(false); fail(e, $('job')); }
+};
+
+function showToolkitResult(node, value) {
+  node.replaceChildren();
+  if (value.score !== undefined) node.append(el('p', { textContent: `Score: ${value.score}/100 — ${value.summary || ''}` }));
+  if (value.week) node.append(...value.week.map((item) => el('p', { textContent: `${item.day}: ${item.format} — ${item.angle} (${item.hook})` })));
+  if (value.fixes) node.append(el('p', { textContent: 'Priorities: ' + value.fixes.join(' · ') }), el('p', { textContent: 'Bio options: ' + value.bios.join(' | ') }));
+  if (value.replies) node.append(el('p', { textContent: `${value.intent}: ${value.replies.join(' | ')}` }));
+}
+$('btn-plan').onclick = async () => {
+  const focus = $('plan-focus').value.trim(), out = $('plan-result');
+  if (!focus) return fail(new Error('Describe the week’s focus first.'), out);
+  busy(true, 'Planning the week…');
+  try { showToolkitResult(out, await post(PA('/planWeek'), { focus })); busy(false); } catch (e) { busy(false); fail(e, out); }
+};
+$('btn-profile-audit').onclick = async () => {
+  const profile = $('profile-details').value.trim(), out = $('profile-result');
+  if (!profile) return fail(new Error('Add profile details first.'), out);
+  busy(true, 'Auditing the profile…');
+  try { showToolkitResult(out, await post(PA('/profileAudit'), { profile })); busy(false); } catch (e) { busy(false); fail(e, out); }
+};
+$('btn-engagement').onclick = async () => {
+  const message = $('engagement-message').value.trim(), out = $('engagement-result');
+  if (!message) return fail(new Error('Add the incoming message first.'), out);
+  busy(true, 'Drafting replies…');
+  try { showToolkitResult(out, await post(PA('/engagementDraft'), { type: $('engagement-type').value, message })); busy(false); } catch (e) { busy(false); fail(e, out); }
+};
+
+let previousPrompt = '';
+$('btn-improve').onclick = async () => {
+  const original = $('topic').value.trim();
+  if (!original) { fail(new Error('Enter a post prompt first.'), $('job')); $('topic').focus(); return; }
+  const projectId = project.id;
+  busy(true, 'Improving your prompt…');
+  $('topic').readOnly = true;
+  try {
+    const { prompt } = await post(PA('/improvePrompt'), { prompt: original });
+    if (project.id !== projectId) return;
+    previousPrompt = original;
+    $('topic').value = prompt;
+    $('topic').dispatchEvent(new Event('input'));
+    $('btn-prompt-undo').hidden = false;
+    ok($('job'), 'Prompt improved. Review it above or generate your post.');
+    $('topic').focus();
+  } catch (e) { fail(e, $('job')); }
+  finally { busy(false); $('topic').readOnly = false; }
+};
+$('btn-prompt-undo').onclick = () => {
+  $('topic').value = previousPrompt;
+  $('topic').dispatchEvent(new Event('input'));
+  $('btn-prompt-undo').hidden = true;
+  $('job').textContent = '';
 };
 
 $('btn-gen').onclick = async () => {
   const topic = $('topic').value.trim();
-  if (!topic) { fail(new Error('Enter a topic first.'), $('job')); $('topic').focus(); return; }
+  if (!topic) { fail(new Error('Enter a post prompt first.'), $('job')); $('topic').focus(); return; }
   let o; try { o = createOpts.read(); } catch (e) { fail(e, $('job')); return; }
   busy(true, 'Writing and designing the post…');
   try {
-    const { dir } = await post(PA('/generate'), { topic, notes: $('notes').value.trim(), ...o });
+    const { dir } = await post(PA('/generate'), { topic, ...o });
     busy(false); $('job').textContent = '';
-    $('topic').value = ''; $('notes').value = ''; createOpts.reset();
+    $('topic').value = ''; $('topic').dispatchEvent(new Event('input')); $('btn-prompt-undo').hidden = true; createOpts.reset();
     await loadLog(); location.hash = `#/p/${project.id}/post/${dir}`;
   } catch (e) { busy(false); fail(e, $('job')); }
 };
@@ -931,8 +1013,52 @@ function show(i) {
   $('r-main').src = slides[idx]; $('r-main').alt = `Slide ${idx + 1} of ${slides.length}`;
   $('counter').textContent = `${idx + 1} / ${slides.length}`;
   $('prev').disabled = idx === 0; $('next').disabled = idx === slides.length - 1;
+  imageLayoutUI();
   [...$('r-slides').children].forEach((b, n) => b.setAttribute('aria-current', n === idx));
 }
+function imageLayoutUI() {
+  let slide;
+  try { slide = JSON.parse($('r-json').value)[idx]; } catch {}
+  $('image-layout-tools').hidden = !slide?.image;
+  $('image-layout').value = slide?.image?.layout || 'auto';
+  $('slide-theme').value = slide?.theme || '';
+  $('slide-text-fields').replaceChildren();
+  for (const key of ['title', 'subtitle', 'text', 'label', 'big', 'unit', 'footer', 'items', 'rows']) {
+    if (slide?.[key] === undefined) continue;
+    const id = 'slide-field-' + key;
+    const value = Array.isArray(slide[key]) ? slide[key].map((v) => Array.isArray(v) ? v.join(' | ') : v).join('\n') : slide[key];
+    const field = el('textarea', { id, value });
+    field.oninput = () => updateSlide((s) => { s[key] = key === 'items' ? field.value.split('\n') : key === 'rows' ? field.value.split('\n').map((v) => v.split('|').map((x) => x.trim())) : field.value; });
+    $('slide-text-fields').append(el('label', { htmlFor: id, textContent: key === 'items' ? 'Items (one per line)' : key === 'rows' ? 'Rows (separate columns with |)' : key[0].toUpperCase() + key.slice(1) }), field);
+  }
+  $('slide-illustration-fields').hidden = !['cover', 'text'].includes(slide?.type);
+  $('slide-illustration').value = slide?.illustration || '';
+  $('slide-image-fields').hidden = !['cover', 'text'].includes(slide?.type);
+  $('slide-image-prompt').value = slide?.image?.prompt || '';
+  $('remove-slide-image').hidden = !slide?.image;
+
+}
+function updateSlide(change) {
+  try { const content = JSON.parse($('r-json').value); change(content[idx]); $('r-json').value = JSON.stringify(content, null, 2); histUI(); }
+  catch (e) { fail(e, $('r-msg')); }
+}
+$('slide-theme').onchange = () => updateSlide((s) => { s.theme = $('slide-theme').value; });
+$('slide-illustration').onchange = () => { updateSlide((s) => { if ($('slide-illustration').value) { s.illustration = $('slide-illustration').value; delete s.image; } else delete s.illustration; }); imageLayoutUI(); };
+$('slide-image-prompt').oninput = () => updateSlide((s) => { const prompt = $('slide-image-prompt').value.trim(); if (!prompt) delete s.image; else { delete s.illustration; $('slide-illustration').value = ''; s.image = { ...s.image, prompt, alt: s.title || 'Post illustration' }; } });
+$('remove-slide-image').onclick = () => { updateSlide((s) => { delete s.image; }); imageLayoutUI(); };
+$('post-font').onchange = histUI;
+$('btn-slide-save').onclick = () => $('btn-save').click();
+$('r-caption').addEventListener('input', histUI);
+$('r-json').addEventListener('input', () => { histUI(); imageLayoutUI(); });
+$('image-layout').onchange = () => {
+  try {
+    const content = JSON.parse($('r-json').value);
+    if (!content[idx]?.image) return;
+    content[idx].image.layout = $('image-layout').value;
+    $('r-json').value = JSON.stringify(content, null, 2);
+    histUI();
+  } catch (e) { fail(e, $('r-msg')); }
+};
 $('prev').onclick = () => show(idx - 1);
 $('next').onclick = () => show(idx + 1);
 $('stage').addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') show(idx - 1); if (e.key === 'ArrowRight') show(idx + 1); });
@@ -947,7 +1073,7 @@ function setStatusUI(status) {
 // Options shared by "Generate" and "Edit with a prompt": slide count, CTAs, emotion, elements.
 const CTA_LIST = ['Follow us', 'Like this post', 'Share with a friend', 'Save this post', 'Comment your thoughts', 'Visit the link in bio', 'Check out more content'];
 const EMO_LIST = ['Inspiring', 'Excited', 'Funny', 'Curious', 'Calm', 'Urgent', 'Empathetic', 'Bold'];
-const EL_LIST = ['Emoji in text', 'Emoji sticker on slides', 'Arrows & highlights'];
+const EL_LIST = ['AI images', 'Illustrations', 'Emoji in text', 'Emoji sticker on slides', 'Arrows & highlights'];
 function buildOpts(host, uid, { editing = false } = {}) {
   const num = el('input', { id: uid + '-count', type: 'number', min: 3, max: 10, step: 1, placeholder: editing ? 'Keep' : 'Auto', inputMode: 'numeric', ariaLabel: 'Number of slides' });
   num.style.maxWidth = '120px';
@@ -958,20 +1084,31 @@ function buildOpts(host, uid, { editing = false } = {}) {
     return { boxes, node: el('fieldset', { className: 'optset' }, el('legend', {}, title + ' ', el('span', { className: 'hint fine', textContent: hint })),
       el('div', { className: 'opts' }, ...items.map((v, i) => el('label', { className: 'opt' }, boxes[i], ' ' + v)))) };
   };
-  const ctas = group('Call-to-action buttons', editing ? '(optional, added to the last slide)' : '(optional, added to the last slide)', CTA_LIST, 'cta');
-  const els = group('Elements', editing ? '(optional, applied across the slides)' : '(optional, extra touches on the slides)', EL_LIST, 'el');
+  const cta = el('select', { id: uid + '-cta' }, el('option', { value: '', textContent: editing ? 'Keep current ending' : 'Auto' }), ...CTA_LIST.map((v) => el('option', { value: v, textContent: v })));
+  const ctas = { node: el('div', {}, el('label', { htmlFor: uid + '-cta', textContent: 'Ending / call to action' }), cta) };
+  const els = group('Decorations', '(optional)', EL_LIST, 'el');
+  const font = el('select', { id: uid + '-font' }); fillFontSelect(font);
+  const ai = el('input', { type: 'checkbox', checked: !editing });
+  const defaults = () => { if (!editing) els.boxes.forEach((b) => { b.checked = b.value === 'AI images'; }); }; // new posts get pictures unless the box is unticked
+  defaults();
   host.replaceChildren(
-    el('label', { htmlFor: uid + '-count' }, 'Number of slides ', el('span', { className: 'hint fine', textContent: editing ? '(optional, 3 to 10. Leave empty to keep the current count)' : '(optional, 3 to 10. Leave empty to let the AI decide, or say it in the notes)' })), num,
-    ctas.node,
-    el('label', { htmlFor: uid + '-emotion' }, 'Emotion ', el('span', { className: 'hint fine', textContent: editing ? '(optional, re-tune the mood of the post)' : '(optional, the mood of the post. Leave on Auto to let the AI decide)' })), emo,
-    els.node);
+    el('div', { className: 'quick-options' },
+      el('div', {}, el('label', { htmlFor: uid + '-count', textContent: 'Slides' }), num),
+      el('div', {}, el('label', { htmlFor: uid + '-emotion', textContent: 'Tone' }), emo),
+      ...(!editing ? [el('div', {}, el('label', { htmlFor: uid + '-font', textContent: 'Font' }), font)] : [])),
+    el('label', { className: 'row' }, ai, ' Generate AI images'),
+    el('p', { className: 'hint', textContent: editing ? 'Unchecked keeps existing images. You can also describe an image change in your prompt.' : 'Images add about a minute. Leave Slides and Tone on Auto for a quick start.' }),
+    el('details', {}, el('summary', { textContent: 'More options' }), ctas.node, els.node));
+  els.boxes[0].closest('label').hidden = true;
+
   return {
+    font,
     read() {
       const raw = num.value.trim(), n = Number(raw);
       if (raw && (!Number.isInteger(n) || n < 3 || n > 10)) { num.focus(); throw new Error('Enter a slide count from 3 to 10.'); }
-      return { slides: raw, ctas: ctas.boxes.filter((b) => b.checked).map((b) => b.value), emotion: emo.value, elements: els.boxes.filter((b) => b.checked).map((b) => b.value) };
+      return { slides: raw, ctas: cta.value ? [cta.value] : [], emotion: emo.value, font: editing ? $('post-font').value : font.value, elements: [...els.boxes.filter((b) => b.checked && b.value !== 'AI images').map((b) => b.value), ...(ai.checked ? ['AI images'] : [])] };
     },
-    reset() { num.value = ''; emo.value = ''; [...ctas.boxes, ...els.boxes].forEach((b) => { b.checked = false; }); },
+    reset() { num.value = ''; emo.value = ''; font.value = ''; ai.checked = !editing; cta.value = ''; els.boxes.forEach((b) => { b.checked = false; }); defaults(); },
   };
 }
 const createOpts = buildOpts($('opts-create'), 'c');
@@ -980,7 +1117,7 @@ const editOpts = buildOpts($('opts-edit'), 'e', { editing: true });
 // ---------- local undo / redo (browser memory, per open post) ----------
 // Every saved state of the open post (slides + caption) is a snapshot. Undo/redo re-applies one and re-renders it.
 const H = { dir: null, stack: [], i: -1, skip: false, max: 50 };
-const snapOf = (content, caption) => JSON.stringify({ content, caption });
+const snapOf = (content, caption, font = $('post-font').value) => JSON.stringify({ content, caption, font });
 function histTrack(dir, content, caption) {
   const s = snapOf(content, caption);
   if (H.dir !== dir) { H.dir = dir; H.stack = [s]; H.i = 0; }
@@ -994,6 +1131,7 @@ function histTrack(dir, content, caption) {
 }
 function histUI() {
   $('h-undo').disabled = !(H.i > 0 || histDirty()); $('h-redo').disabled = !(H.i < H.stack.length - 1);
+  $('save-state').textContent = histDirty() ? 'Unsaved changes' : 'Saved';
   $('h-pos').textContent = H.stack.length > 1 ? `Version ${H.i + 1} of ${H.stack.length}` : '';
 }
 function histDirty() {
@@ -1007,10 +1145,10 @@ async function histGo(to) {
   if (histDirty() && to === H.i - 1) target = H.i;   // unsaved edits: first undo just discards them
   if (target < 0 || target >= H.stack.length) return;
   if (target === H.i) { await openDraft(current, idx); ok(note, 'Discarded unsaved edits.'); return; }
-  const { content, caption } = JSON.parse(H.stack[target]);
+  const { content, caption, font } = JSON.parse(H.stack[target]);
   busy(true, target < H.i ? 'Undoing…' : 'Redoing…', 'rv-job');
   try {
-    await post(PA('/save'), { dir: current, content, caption });
+    await post(PA('/save'), { dir: current, content, caption, font });
     H.i = target; H.skip = true;
     busy(false, '', 'rv-job'); await loadLog(); await openDraft(current, Math.min(idx, content.length - 1)); // openDraft recomputes undo/redo state
     ok(note, `Showing version ${H.i + 1} of ${H.stack.length}.`);
@@ -1026,43 +1164,60 @@ document.addEventListener('keydown', (e) => {
 
 async function openDraft(dir, at = 0) {
   const d = await post(PA('/draft'), { dir });
-  current = dir; section('review');
+  current = dir; section('review'); fillFontSelect($('post-font'), d.font || ''); $('slide-theme').replaceChildren(...(d.themes || []).map((t) => el('option', { value: t, textContent: ({blue:'Primary',light:'Light',dark:'Dark',pop:'Accent',pop2:'Third colour',pop3:'Fourth colour',mix2:'Third colour gradient',mix3:'Fourth colour gradient',gradient:'Gradient'})[t] || t.replaceAll('-', ' ') })));
   $('r-title').textContent = d.title; $('r-dir').textContent = dir;
   const v = Date.now();
   slides = d.previews.map((f) => `/projects/${project.id}/drafts/${dir}/${f}?v=${v}`);
   $('r-slides').replaceChildren(...slides.map((src, i) => el('button', { type: 'button', ariaLabel: `Go to slide ${i + 1}`, onclick: () => show(i) }, el('img', { src, alt: '' }))));
+  $('r-json').value = JSON.stringify(d.content, null, 2);
+  const isCarousel = d.format === 'carousel';
+  $('slide-tools').hidden = !isCarousel;
+  $('image-layout-tools').hidden = !isCarousel;
   show(at);
   $('r-hint').textContent = d.postingHint || '';
   $('open-ch').href = /^https:\/\//.test(d.homeUrl || '') ? d.homeUrl : '#';
   $('open-ch-btn').textContent = 'Open ' + (d.channelLabel || 'platform');
   $('r-caption').value = d.caption;
   $('r-json').value = JSON.stringify(d.content, null, 2);
+  imageLayoutUI();
   const entry = logCache.find((p) => p.local_dir && p.local_dir.replace('drafts/', '') === dir);
   $('r-url').value = entry?.post_url || '';
   setStatusUI(entry?.status || 'drafted');
   $('r-msg').className = 'status'; $('r-msg').textContent = '';
-  $('btn-undo').hidden = !d.canUndo; $('rv-job').className = 'status'; $('rv-job').textContent = '';
+  if (d.imageWarning) fail(new Error(d.imageWarning), $('r-msg'));
+  $('btn-undo').hidden = !(d.canUndo && (H.dir !== dir || H.stack.length <= 1)); $('rv-job').className = 'status'; $('rv-job').textContent = '';
   histTrack(dir, d.content, d.caption);
   renderHist(); window.scrollTo({ top: 0 });
 }
+
+$('btn-images').onclick = async () => {
+  let content;
+  try { content = JSON.parse($('r-json').value); } catch { fail(new Error('The slide JSON is not valid.'), $('r-msg')); return; }
+  busy(true, 'Generating AI images and re-rendering…', 'r-msg');
+  try {
+    await post(PA('/save'), { dir: current, content, font: $('post-font').value, caption: $('r-caption').value, addImages: true });
+    busy(false, '', 'r-msg'); await openDraft(current, idx);
+    if (!$('r-msg').textContent) ok($('r-msg'), 'AI images added and slides re-rendered.');
+  } catch (e) { busy(false, '', 'r-msg'); fail(e, $('r-msg')); }
+};
 
 $('btn-save').onclick = async () => {
   $('r-msg').className = 'status'; $('r-msg').textContent = '';
   let content;
   try { content = JSON.parse($('r-json').value); } catch { fail(new Error('The slide JSON is not valid.'), $('r-msg')); return; }
-  $('btn-save').disabled = true; $('r-msg').textContent = 'Re-rendering…';
-  try { await post(PA('/save'), { dir: current, content, caption: $('r-caption').value }); await openDraft(current); ok($('r-msg'), 'Saved and re-rendered.'); }
+  $('btn-slide-save').disabled = true; $('btn-save').disabled = true; $('r-msg').textContent = 'Re-rendering…';
+  try { await post(PA('/save'), { dir: current, content, font: $('post-font').value, caption: $('r-caption').value }); await openDraft(current, idx); if (!$('r-msg').textContent) ok($('r-msg'), 'Saved and re-rendered.'); }
   catch (e) { fail(e, $('r-msg')); }
-  $('btn-save').disabled = false;
+  $('btn-save').disabled = false; $('btn-slide-save').disabled = false;
 };
 async function arrange(fn, msg) {
   let content; try { content = JSON.parse($('r-json').value); } catch { fail(new Error('The slide JSON is not valid.'), $('r-msg')); return; }
   if (!Array.isArray(content)) { fail(new Error('This format cannot be rearranged.'), $('r-msg')); return; }
   const to = fn(content); if (to === null) return;
-  ['sl-left', 'sl-right', 'sl-del', 'btn-save'].forEach((id) => ($(id).disabled = true)); $('r-msg').className = 'status'; $('r-msg').textContent = 'Re-rendering…';
-  try { await post(PA('/save'), { dir: current, content, caption: $('r-caption').value }); await openDraft(current, to); ok($('r-msg'), msg); }
+  ['sl-left', 'sl-right', 'sl-del', 'btn-save', 'btn-slide-save'].forEach((id) => ($(id).disabled = true)); $('r-msg').className = 'status'; $('r-msg').textContent = 'Re-rendering…';
+  try { await post(PA('/save'), { dir: current, content, font: $('post-font').value, caption: $('r-caption').value }); await openDraft(current, to); ok($('r-msg'), msg); }
   catch (e) { fail(e, $('r-msg')); }
-  ['sl-left', 'sl-right', 'sl-del', 'btn-save'].forEach((id) => ($(id).disabled = false));
+  ['sl-left', 'sl-right', 'sl-del', 'btn-save', 'btn-slide-save'].forEach((id) => ($(id).disabled = false));
 }
 const move = (d) => () => arrange((c) => { const j = idx + d; if (j < 0 || j >= c.length) return null; [c[idx], c[j]] = [c[j], c[idx]]; return j; }, 'Slide moved.');
 $('sl-left').onclick = move(-1); $('sl-right').onclick = move(1);
@@ -1073,7 +1228,7 @@ $('sl-del').onclick = () => arrange((c) => {
 }, 'Slide deleted.');
 function currentEdits() {
   let content; try { content = JSON.parse($('r-json').value); } catch { throw new Error('The slide JSON is not valid. Fix it or reload before using a prompt.'); }
-  return { content, caption: $('r-caption').value };
+  return { content, caption: $('r-caption').value, font: $('post-font').value };
 }
 $('btn-revise').onclick = async () => {
   const instruction = $('r-prompt').value.trim();
@@ -1081,7 +1236,7 @@ $('btn-revise').onclick = async () => {
   let edits, opts; try { edits = currentEdits(); opts = editOpts.read(); } catch (e) { fail(e, $('rv-job')); return; }
   busy(true, 'Claude is editing the post…', 'rv-job');
   try {
-    await post(PA('/revise'), { dir: current, instruction, ...edits, ...opts });
+    await post(PA('/revise'), { dir: current, instruction, ...edits, ...opts, scope: $('edit-scope').value === 'selected' ? idx : undefined });
     busy(false, '', 'rv-job'); $('r-prompt').value = ''; editOpts.reset();
     await loadLog(); await openDraft(current); ok($('rv-job'), 'Updated. Review the slides, or undo.');
   } catch (e) { busy(false, '', 'rv-job'); fail(e, $('rv-job')); }
@@ -1107,6 +1262,19 @@ async function setStatus(status) {
   catch (e) { fail(e, $('r-msg')); }
 }
 $('btn-approve').onclick = () => setStatus('approved');
+$('btn-quality').onclick = async () => {
+  let content; try { content = JSON.parse($('r-json').value); } catch { fail(new Error('The post JSON is not valid.'), $('quality-result')); return; }
+  try {
+    const report = await post(PA('/quality'), { dir: current, content, caption: $('r-caption').value });
+    const out = $('quality-result'); out.className = 'status ' + (report.ready ? 'ok' : 'error');
+    out.textContent = `${report.ready ? 'Ready' : 'Needs fixes'} · ${report.score}/100${report.issues.length ? ': ' + report.issues.map((issue) => issue.message).join(' ') : ''}`;
+  } catch (e) { fail(e, $('quality-result')); }
+};
+$('btn-insights').onclick = async () => {
+  const metrics = { reach: $('insights-reach').value, saves: $('insights-saves').value, shares: $('insights-shares').value, follows: $('insights-follows').value };
+  try { await post(PA('/insights'), { dir: current, metrics }); ok($('insights-result'), 'Insights saved.'); await loadLog(); }
+  catch (e) { fail(e, $('insights-result')); }
+};
 $('btn-del-post').onclick = async () => {
   if (!current || !confirm('Delete this post and its slides from history? This cannot be undone.')) return;
   try { await post(PA('/deleteDraft'), { dir: current }); current = null; await loadLog(); location.hash = `#/p/${project.id}`; }

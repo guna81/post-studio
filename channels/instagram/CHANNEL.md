@@ -1,6 +1,10 @@
 # Channel: Instagram
 
-Accepts: `carousel`. Caption: 3–5 short lines, a save/share call, 5–8 hashtags (include `brand.hashtags`).
+Accepts: `carousel` and `reel` production plans. Caption: 3–5 short lines, a save/share call, and at most 5 optional hashtags (choose relevant entries from `brand.hashtags`). This is the app’s caption validation rule.
+
+Carousel exports contain ordered slide PNGs and a caption. Reel exports contain a script, storyboard, filming checklist, and SVG preview; film and edit the video before uploading it manually.
+
+The browser-assisted steps below apply to carousel PNGs. The local app itself exports files and opens Instagram for manual publishing.
 
 ## Post with Claude in Chrome
 Only for drafts whose log status is `approved`, and only after the user explicitly approves the final slides and caption in this conversation.

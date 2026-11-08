@@ -57,6 +57,8 @@ node bin/post-studio.mjs start      # open http://localhost:4173, sign up, creat
 
 Then: **create a project → Suggest topics → Generate → review and edit → export and post.**
 
+The port defaults to 4173; set `PORT=<n>` to change it. To keep it running in the background on macOS, Linux or Windows (auto-start, auto-restart, custom port), see [docs/run-in-background.md](docs/run-in-background.md).
+
 ## How it works
 
 1. **Create a project** with your platform, theme, goal, audience, tone, logo and hashtags.
